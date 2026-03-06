@@ -1,41 +1,140 @@
-# Home Assistant WiiMote Bridge Add-on
+# Home Assistant WiiMote Bridge
 
-Reads Wii Remote button events from an ESP32 over USB serial and publishes them to MQTT.
+Use a Nintendo Wii Remote as a Home Assistant controller.
+
+This project connects a Wii Remote to an ESP32 over Bluetooth and exposes button presses to Home Assistant via MQTT using a USB serial bridge.
 
 ## Architecture
 
-Wii Remote  
-→ Bluetooth  
-→ ESP32  
-→ USB serial  
-→ Home Assistant add-on  
-→ MQTT
+```
+Wii Remote
+↓ Bluetooth
+ESP32
+↓ USB Serial
+Home Assistant Add-on
+↓ MQTT
+Home Assistant Automations
+```
 
-## Requirements
+The ESP32 handles the Bluetooth stack and translates Wiimote events into a simple JSON protocol over USB serial.  
+A Home Assistant add-on reads the serial stream and publishes MQTT topics that Home Assistant automations can use.
 
-- Home Assistant OS
-- Mosquitto broker add-on or another MQTT broker
-- ESP32 running the WiiMote serial bridge firmware
-- USB connection from ESP32 to the HAOS host
+## Features
 
-## Installation
+- Uses inexpensive ESP32 hardware
+- No WiFi required for the ESP32
+- USB serial connection to Home Assistant host
+- MQTT interface compatible with many systems
+- Clean JSON protocol between firmware and HA
+- Works with standard Wii Remotes
 
-Add this repository URL to Home Assistant:
+## Repository Structure
 
-`https://github.com/andremmfaria/ha-wiimote-bridge`
+```
+ha-wiimote-bridge/
+├── README.md
+├── repository.yaml
+├── docs/
+│   ├── architecture.md
+│   ├── protocol.md
+│   ├── firmware-setup.md
+│   └── ha-addon-setup.md
+├── esp32/
+│   ├── README.md
+│   └── wiimote_serial_bridge/
+│       └── wiimote_serial_bridge.ino
+└── wiimote_bridge/
+    ├── config.yaml
+    ├── Dockerfile
+    ├── run.sh
+    └── app/
+        ├── requirements.txt
+        └── main.py
+```
 
-Then install the **WiiMote Bridge** add-on.
+## Quick Start
 
-## Configuration
+1. Flash the ESP32 firmware  
+   → see `esp32/README.md`
 
-Example:
+2. Connect the ESP32 to the Home Assistant host via USB.
+
+3. Install the **WiiMote Bridge** add-on from this repository.
+
+4. Configure the add-on:
 
 ```yaml
 serial_port: /dev/ttyUSB0
 serial_baud: 115200
 mqtt_host: core-mosquitto
 mqtt_port: 1883
-mqtt_username: ""
-mqtt_password: ""
 topic_prefix: wiimote
 ```
+
+5. Start the add-on.
+
+6. Pair the Wii Remote by pressing **1 + 2**.
+
+7. Button events will appear in MQTT topics such as:
+
+```
+wiimote/1/button/A
+wiimote/1/button/B
+wiimote/1/button/PLUS
+```
+
+Payloads:
+
+```
+ON
+OFF
+```
+
+## Example Home Assistant Automation
+
+```yaml
+alias: Toggle lights with Wii Remote A button
+trigger:
+  - platform: mqtt
+    topic: wiimote/1/button/A
+    payload: "ON"
+
+action:
+  - service: light.toggle
+    target:
+      entity_id: light.living_room
+```
+
+## Supported Hardware
+
+Tested with:
+
+* ESP32-WROOM-32 development boards
+* Nintendo Wii Remote (standard)
+
+Other ESP32 boards should work as long as they support **Bluetooth Classic**.
+
+## Known Limitations
+
+* Only button events are currently supported
+* Motion / accelerometer support will be added later
+* Only one Wii Remote supported in the current firmware
+
+## Why This Exists
+
+Home Assistant does not natively support Wii Remotes.
+While they are old gaming controllers, they make excellent wireless remotes for home automation projects.
+
+This project repurposes them using inexpensive ESP32 hardware.
+
+## Future Improvements
+
+* accelerometer support
+* rumble control from Home Assistant
+* LED control
+* multiple Wii Remotes
+* MQTT auto-discovery
+
+## License
+
+MIT
