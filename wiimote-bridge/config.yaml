@@ -1,0 +1,33 @@
+name: "WiiMote Bridge"
+version: "0.1.0"
+slug: "wiimote_bridge"
+description: "Reads Wii Remote events from an ESP32 over USB serial and publishes them to MQTT"
+url: "https://github.com/andremmfaria/ha-wiimote-bridge"
+arch:
+  - amd64
+  - aarch64
+  - armv7
+  - i386
+startup: application
+boot: auto
+init: false
+
+uart: true
+
+options:
+  serial_port: "/dev/ttyUSB0"
+  serial_baud: 115200
+  mqtt_host: "core-mosquitto"
+  mqtt_port: 1883
+  mqtt_username: ""
+  mqtt_password: ""
+  topic_prefix: "wiimote"
+
+schema:
+  serial_port: str
+  serial_baud: int
+  mqtt_host: str
+  mqtt_port: port
+  mqtt_username: str
+  mqtt_password: password
+  topic_prefix: str
