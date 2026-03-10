@@ -10,31 +10,12 @@ The firmware connects to a Nintendo Wii Remote over Bluetooth and emits JSON eve
 
 This setup was tested with:
 
-- ESP32-WROOM-32 development board
+- ESP32-WROOM-32 development board ([link](https://www.amazon.co.uk/dp/B0DGLCWR76))
 - Nintendo Wii Remote
 - `arduino-cli`
 - WSL on Windows
-- Arduino ESP32 core `2.0.17`
-
----
-
-# Important Version Note
-
-The `ESP32Wiimote` library does not work correctly with newer Arduino ESP32 core versions tested during development.
-
-Working version:
-
-```text
-esp32:esp32@2.0.17
-````
-
-Known failure symptom with newer versions:
-
-```text
-btStart() failed
-```
-
-If you see that error, remove the newer ESP32 core and install `2.0.17`.
+- Arduino ESP32 core `3.3.7`
+- `ESP32Wiimote` library v0.2 : https://github.com/andremmfaria/ESP32Wiimote
 
 ---
 
@@ -46,7 +27,7 @@ You need:
 * a USB cable
 * `arduino-cli`
 * Python 3
-* the `ESP32Wiimote` library
+* The `ESP32Wiimote` library
 
 ---
 
@@ -75,7 +56,7 @@ arduino-cli core update-index
 Install the tested version:
 
 ```bash
-arduino-cli core install esp32:esp32@2.0.17
+arduino-cli core install esp32:esp32@3.3.7
 ```
 
 Verify:
@@ -87,7 +68,7 @@ arduino-cli core list
 Expected output should include:
 
 ```text
-esp32:esp32 2.0.17
+esp32:esp32 3.3.7
 ```
 
 ---
@@ -97,7 +78,7 @@ esp32:esp32 2.0.17
 Install directly from GitHub:
 
 ```bash
-arduino-cli lib install --git-url https://github.com/hrgraf/ESP32Wiimote
+arduino-cli lib install --git-url https://github.com/andremmfaria/ESP32Wiimote
 ```
 
 You can confirm installation with:
@@ -258,26 +239,6 @@ These are used by the Home Assistant bridge for health monitoring.
 
 # Common Problems
 
-## `btStart() failed`
-
-Cause:
-
-* incompatible Arduino ESP32 core version
-
-Fix:
-
-* uninstall current core
-* install `esp32:esp32@2.0.17`
-
-Commands:
-
-```bash
-arduino-cli core uninstall esp32:esp32
-arduino-cli core install esp32:esp32@2.0.17
-```
-
----
-
 ## `Library 'ESP32Wiimote@latest' not found`
 
 Cause:
@@ -289,7 +250,7 @@ Fix:
 * install from GitHub instead
 
 ```bash
-arduino-cli lib install --git-url https://github.com/hrgraf/ESP32Wiimote
+arduino-cli lib install --git-url https://github.com/andremmfaria/ESP32Wiimote
 ```
 
 ---

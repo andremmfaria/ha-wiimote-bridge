@@ -8,33 +8,23 @@ The firmware acts as the Bluetooth bridge for the project.
 
 Tested with:
 
-- ESP32-WROOM-32 development board
+- ESP32-WROOM-32 development board ([link](https://www.amazon.co.uk/dp/B0DGLCWR76))
 - USB connection to the Home Assistant host
 
 The ESP32 must support **Bluetooth Classic** (not only BLE).
 
 ## Requirements
 
-- Arduino ESP32 Core **2.0.17**
-- `ESP32Wiimote` library by hrgraf
+- Arduino ESP32 Core **3.3.7**
+- `ESP32Wiimote` library by andremmfaria (v0.2)
 - `arduino-cli` or Arduino IDE
-
-⚠️ ESP32 Arduino Core **3.x does not work** with the Wiimote library.
-
-Symptoms:
-
-```
-btStart() failed
-```
-
-If you see this error, downgrade to core `2.0.17`.
 
 ## Installing the ESP32 Core
 
 Using `arduino-cli`:
 
 ```
-arduino-cli core install esp32:esp32@2.0.17
+arduino-cli core install esp32:esp32@3.3.7
 ```
 
 Verify installation:
@@ -48,7 +38,7 @@ arduino-cli core list
 Install directly from GitHub:
 
 ```
-arduino-cli lib install --git-url [https://github.com/hrgraf/ESP32Wiimote](https://github.com/hrgraf/ESP32Wiimote)
+arduino-cli lib install --git-url [https://github.com/andremmfaria/ESP32Wiimote](https://github.com/andremmfaria/ESP32Wiimote)
 ```
 
 ## Firmware Location

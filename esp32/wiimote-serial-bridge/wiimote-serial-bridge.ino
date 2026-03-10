@@ -1,3 +1,5 @@
+#define WIIMOTE_VERBOSE 2  // Set ESP32Wiimote log level to only errors and warnings
+
 #include <Arduino.h>
 #include "ESP32Wiimote.h"
 
@@ -25,12 +27,15 @@ static const ButtonMap BUTTONS[] = {
 static ButtonState lastButtons = NO_BUTTON;
 static bool connected = false;
 static bool baselineCaptured = false;
+static uint8_t lastBatteryLevel = 0;
 
 static unsigned long lastWaitingMsgMs = 0;
 static unsigned long lastHeartbeatMs = 0;
+static unsigned long lastBatteryRequestMs = 0;
 
 static const unsigned long WAITING_INTERVAL_MS = 5000;
 static const unsigned long HEARTBEAT_INTERVAL_MS = 10000;
+static const unsigned long BATTERY_REQUEST_INTERVAL_MS = 60000;
 
 void emitReady() {
   Serial.println("{\"type\":\"status\",\"device\":\"esp32\",\"ready\":true}");
@@ -53,6 +58,16 @@ void emitPrompt() {
 void emitHeartbeat() {
   Serial.print("{\"type\":\"heartbeat\",\"device\":\"esp32\",\"wiimote\":1,\"connected\":");
   Serial.print(connected ? "true" : "false");
+  if (connected) {
+    Serial.print(",\"battery\":");
+    Serial.print(lastBatteryLevel);
+  }
+  Serial.println("}");
+}
+
+void emitBattery(uint8_t level) {
+  Serial.print("{\"type\":\"battery\",\"wiimote\":1,\"level\":");
+  Serial.print(level);
   Serial.println("}");
 }
 
@@ -94,21 +109,37 @@ void setup() {
   unsigned long now = millis();
   lastWaitingMsgMs = now;
   lastHeartbeatMs = now;
+  lastBatteryRequestMs = now;
 }
 
 void loop() {
   wiimote.task();
   unsigned long now = millis();
 
+  // Check connection status using library method
+  bool isConnected = wiimote.isConnected();
+  
+  // Detect connection state changes
+  if (isConnected && !connected) {
+    // Just connected
+    connected = true;
+    baselineCaptured = false;
+    emitConnected(true);
+    // Request initial battery level
+    wiimote.requestBatteryUpdate();
+    lastBatteryRequestMs = now;
+  } else if (!isConnected && connected) {
+    // Just disconnected
+    connected = false;
+    baselineCaptured = false;
+    lastBatteryLevel = 0;
+    emitConnected(false);
+  }
+
+  // Process available data
   int avail = wiimote.available();
   if (avail > 0) {
     ButtonState buttons = wiimote.getButtonState();
-
-    if (!connected) {
-      connected = true;
-      baselineCaptured = false;
-      emitConnected(true);
-    }
 
     // On the first packet after connection, capture the current state
     // without emitting button events. This avoids bogus startup transitions.
@@ -118,11 +149,24 @@ void loop() {
     } else {
       emitButtonsChanged(buttons);
     }
+    
+    // Check for battery level changes
+    uint8_t currentBattery = wiimote.getBatteryLevel();
+    if (currentBattery != lastBatteryLevel) {
+      lastBatteryLevel = currentBattery;
+      emitBattery(currentBattery);
+    }
   }
 
   if (!connected && (now - lastWaitingMsgMs >= WAITING_INTERVAL_MS)) {
     emitWaiting();
     lastWaitingMsgMs = now;
+  }
+
+  // Request battery update periodically when connected
+  if (connected && (now - lastBatteryRequestMs >= BATTERY_REQUEST_INTERVAL_MS)) {
+    wiimote.requestBatteryUpdate();
+    lastBatteryRequestMs = now;
   }
 
   if (now - lastHeartbeatMs >= HEARTBEAT_INTERVAL_MS) {
