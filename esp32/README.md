@@ -67,6 +67,16 @@ arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:esp32 .
 
 Replace `/dev/ttyUSB0` with your serial device if necessary.
 
+## Logging Level
+
+The firmware sets the ESP32Wiimote runtime logging level via public API:
+
+```cpp
+ESP32Wiimote::setLogLevel(WIIMOTE_LOG_WARNING);
+```
+
+This keeps library output to errors and warnings only (no `[INFO]` lines).
+
 ## Pairing the Wii Remote
 
 1. Power the ESP32

@@ -1,103 +1,26 @@
-#define WIIMOTE_VERBOSE 2  // Set ESP32Wiimote log level to only errors and warnings
-
 #include <Arduino.h>
 #include "ESP32Wiimote.h"
+#include "include/state.h"
+#include "include/messages.h"
+#include "include/buttons.h"
 
+// Global variable definitions
 ESP32Wiimote wiimote;
+ButtonState lastButtons = NO_BUTTON;
+bool connected = false;
+bool baselineCaptured = false;
+uint8_t lastBatteryLevel = 0;
 
-struct ButtonMap {
-  uint32_t mask;
-  const char *name;
-};
-
-static const ButtonMap BUTTONS[] = {
-    {BUTTON_A, "A"},
-    {BUTTON_B, "B"},
-    {BUTTON_ONE, "ONE"},
-    {BUTTON_TWO, "TWO"},
-    {BUTTON_PLUS, "PLUS"},
-    {BUTTON_MINUS, "MINUS"},
-    {BUTTON_HOME, "HOME"},
-    {BUTTON_UP, "UP"},
-    {BUTTON_DOWN, "DOWN"},
-    {BUTTON_LEFT, "LEFT"},
-    {BUTTON_RIGHT, "RIGHT"},
-};
-
-static ButtonState lastButtons = NO_BUTTON;
-static bool connected = false;
-static bool baselineCaptured = false;
-static uint8_t lastBatteryLevel = 0;
-
-static unsigned long lastWaitingMsgMs = 0;
-static unsigned long lastHeartbeatMs = 0;
-static unsigned long lastBatteryRequestMs = 0;
-
-static const unsigned long WAITING_INTERVAL_MS = 5000;
-static const unsigned long HEARTBEAT_INTERVAL_MS = 10000;
-static const unsigned long BATTERY_REQUEST_INTERVAL_MS = 60000;
-
-void emitReady() {
-  Serial.println("{\"type\":\"status\",\"device\":\"esp32\",\"ready\":true}");
-}
-
-void emitConnected(bool isConnected) {
-  Serial.print("{\"type\":\"status\",\"wiimote\":1,\"connected\":");
-  Serial.print(isConnected ? "true" : "false");
-  Serial.println("}");
-}
-
-void emitWaiting() {
-  Serial.println("{\"type\":\"status\",\"wiimote\":1,\"connected\":false,\"waiting\":true}");
-}
-
-void emitPrompt() {
-  Serial.println("{\"type\":\"status\",\"wiimote\":1,\"connected\":false,\"note\":\"press_1_and_2\"}");
-}
-
-void emitHeartbeat() {
-  Serial.print("{\"type\":\"heartbeat\",\"device\":\"esp32\",\"wiimote\":1,\"connected\":");
-  Serial.print(connected ? "true" : "false");
-  if (connected) {
-    Serial.print(",\"battery\":");
-    Serial.print(lastBatteryLevel);
-  }
-  Serial.println("}");
-}
-
-void emitBattery(uint8_t level) {
-  Serial.print("{\"type\":\"battery\",\"wiimote\":1,\"level\":");
-  Serial.print(level);
-  Serial.println("}");
-}
-
-void emitButton(const char *name, bool down) {
-  Serial.print("{\"type\":\"btn\",\"wiimote\":1,\"btn\":\"");
-  Serial.print(name);
-  Serial.print("\",\"down\":");
-  Serial.print(down ? "true" : "false");
-  Serial.println("}");
-}
-
-void emitButtonsChanged(ButtonState currentButtons) {
-  uint32_t changed = ((uint32_t)currentButtons) ^ ((uint32_t)lastButtons);
-  if (changed == 0) {
-    return;
-  }
-
-  for (const auto &b : BUTTONS) {
-    if (changed & b.mask) {
-      bool isDown = (((uint32_t)currentButtons) & b.mask) != 0;
-      emitButton(b.name, isDown);
-    }
-  }
-
-  lastButtons = currentButtons;
-}
+unsigned long lastWaitingMsgMs = 0;
+unsigned long lastHeartbeatMs = 0;
+unsigned long lastBatteryRequestMs = 0;
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
+
+  // Keep library logs to errors and warnings only.
+  ESP32Wiimote::setLogLevel(WIIMOTE_LOG_WARNING);
 
   emitReady();
   emitPrompt();
