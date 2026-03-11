@@ -2,7 +2,11 @@ from typing import Any
 
 import paho.mqtt.client as mqtt
 
-from ..transport.mqtt_client import publish_button, publish_connected, publish_heartbeat
+from wiimote_bridge.transport.mqtt_client import (
+    publish_button,
+    publish_connected,
+    publish_heartbeat,
+)
 
 
 def handle_message(client: mqtt.Client, topic_prefix: str, msg: dict[str, Any]) -> None:

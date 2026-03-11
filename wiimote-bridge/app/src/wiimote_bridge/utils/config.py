@@ -15,7 +15,7 @@ class Settings:
 
 
 def load_settings() -> Settings:
-    settings = Dynaconf(environments=False)
+    settings = Dynaconf(environments=False, envvar_prefix=False)
 
     return Settings(
         serial_port=settings.get("SERIAL_PORT", "/dev/ttyUSB0"),

@@ -5,11 +5,11 @@ from typing import Any
 
 import serial
 
-from ..transport.mqtt_client import connect_mqtt
-from ..transport.serial_reader import open_serial
-from ..utils.config import load_settings
-from ..utils.logging import get_logger
-from .handlers import handle_message
+from wiimote_bridge.core.handlers import handle_message
+from wiimote_bridge.transport.mqtt_client import connect_mqtt
+from wiimote_bridge.transport.serial_reader import open_serial
+from wiimote_bridge.utils.config import load_settings
+from wiimote_bridge.utils.logging import get_logger
 
 
 LOGGER = get_logger(__name__)

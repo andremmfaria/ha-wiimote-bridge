@@ -58,6 +58,7 @@ ha-wiimote-bridge/
     ├── run.sh
     └── app/
     ├── pyproject.toml
+      ├── uv.lock
     └── src/
       └── wiimote_bridge/
         ├── core/
@@ -156,7 +157,8 @@ The Home Assistant add-on is released from Git tags.
 
 1. Update `wiimote-bridge/config.yaml` with the new add-on version.
 2. Update `wiimote-bridge/CHANGELOG.md`.
-3. Create and push a matching tag such as `v0.1.0`.
+3. If Python dependencies changed, regenerate `wiimote-bridge/app/uv.lock`.
+4. Create and push a matching tag such as `v0.1.0`.
 
 The tag triggers GitHub Actions to:
 

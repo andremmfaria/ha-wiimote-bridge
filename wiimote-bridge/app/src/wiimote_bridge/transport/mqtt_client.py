@@ -3,8 +3,8 @@ from typing import Any
 
 import paho.mqtt.client as mqtt
 
-from ..utils.config import Settings
-from ..utils.logging import get_logger
+from wiimote_bridge.utils.config import Settings
+from wiimote_bridge.utils.logging import get_logger
 
 
 LOGGER = get_logger(__name__)
