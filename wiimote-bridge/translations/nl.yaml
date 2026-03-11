@@ -1,0 +1,22 @@
+configuration:
+  serial_port:
+    name: Seriële poort
+    description: Serieel apparaat dat door de ESP32 beschikbaar wordt gemaakt op de Home Assistant-host.
+  serial_baud:
+    name: Seriële baudrate
+    description: Baudrate die door de ESP32-firmware wordt gebruikt.
+  mqtt_host:
+    name: MQTT-host
+    description: Hostnaam van de MQTT-broker die Wii Remote-gebeurtenissen ontvangt.
+  mqtt_port:
+    name: MQTT-poort
+    description: TCP-poort van de MQTT-broker.
+  mqtt_username:
+    name: MQTT-gebruikersnaam
+    description: Optionele gebruikersnaam voor broker-authenticatie.
+  mqtt_password:
+    name: MQTT-wachtwoord
+    description: Optioneel wachtwoord voor broker-authenticatie.
+  topic_prefix:
+    name: MQTT-topicprefix
+    description: Prefix dat wordt gebruikt voor alle gepubliceerde MQTT-topics.

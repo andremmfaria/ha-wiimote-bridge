@@ -1,0 +1,22 @@
+configuration:
+  serial_port:
+    name: Seriel port
+    description: Seriel enhed eksponeret af ESP32 på Home Assistant-værten.
+  serial_baud:
+    name: Seriel baudrate
+    description: Baudrate brugt af ESP32-firmwaren.
+  mqtt_host:
+    name: MQTT-vært
+    description: Værtsnavn på MQTT-broker, der modtager Wii Remote-hændelser.
+  mqtt_port:
+    name: MQTT-port
+    description: TCP-port for MQTT-brokeren.
+  mqtt_username:
+    name: MQTT-brugernavn
+    description: Valgfrit brugernavn til broker-godkendelse.
+  mqtt_password:
+    name: MQTT-adgangskode
+    description: Valgfri adgangskode til broker-godkendelse.
+  topic_prefix:
+    name: MQTT-emnepræfiks
+    description: Præfiks brugt til alle publicerede MQTT-emner.

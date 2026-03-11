@@ -1,0 +1,22 @@
+configuration:
+  serial_port:
+    name: Nuoseklusis prievadas
+    description: Nuoseklusis įrenginys, kurį ESP32 pateikia Home Assistant serveryje.
+  serial_baud:
+    name: Nuosekliojo ryšio sparta (baud)
+    description: Baud sparta, naudojama ESP32 programinėje įrangoje.
+  mqtt_host:
+    name: MQTT serveris
+    description: MQTT brokerio serverio pavadinimas, gaunantis Wii Remote įvykius.
+  mqtt_port:
+    name: MQTT prievadas
+    description: MQTT brokerio TCP prievadas.
+  mqtt_username:
+    name: MQTT naudotojo vardas
+    description: Pasirenkamas naudotojo vardas brokerio autentifikacijai.
+  mqtt_password:
+    name: MQTT slaptažodis
+    description: Pasirenkamas slaptažodis brokerio autentifikacijai.
+  topic_prefix:
+    name: MQTT temų priešdėlis
+    description: Priešdėlis, naudojamas visoms skelbiamoms MQTT temoms.

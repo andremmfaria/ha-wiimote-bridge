@@ -1,0 +1,22 @@
+configuration:
+  serial_port:
+    name: Serijska vrata
+    description: Serijska naprava, ki jo ESP32 izpostavi na gostitelju Home Assistant.
+  serial_baud:
+    name: Hitrost serijskega porta
+    description: Baud hitrost, ki jo uporablja vdelana programska oprema ESP32.
+  mqtt_host:
+    name: MQTT gostitelj
+    description: Ime gostitelja MQTT posrednika, ki prejema dogodke Wii Remote.
+  mqtt_port:
+    name: MQTT vrata
+    description: TCP vrata MQTT posrednika.
+  mqtt_username:
+    name: MQTT uporabniško ime
+    description: Izbirno uporabniško ime za avtentikacijo pri posredniku.
+  mqtt_password:
+    name: MQTT geslo
+    description: Izbirno geslo za avtentikacijo pri posredniku.
+  topic_prefix:
+    name: Predpona MQTT tem
+    description: Predpona, uporabljena za vse objavljene MQTT teme.

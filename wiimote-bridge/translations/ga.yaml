@@ -1,0 +1,22 @@
+configuration:
+  serial_port:
+    name: Port sraitheach
+    description: Gléas sraitheach atá nochtaithe ag an ESP32 ar óstach Home Assistant.
+  serial_baud:
+    name: Ráta baud sraitheach
+    description: An ráta baud a úsáideann firmware an ESP32.
+  mqtt_host:
+    name: Óstach MQTT
+    description: Ainm óstaigh an bhróicéara MQTT a fhaigheann imeachtaí Wii Remote.
+  mqtt_port:
+    name: Port MQTT
+    description: Port TCP an bhróicéara MQTT.
+  mqtt_username:
+    name: Ainm úsáideora MQTT
+    description: Ainm úsáideora roghnach le haghaidh fíordheimhnithe an bhróicéara.
+  mqtt_password:
+    name: Focal faire MQTT
+    description: Focal faire roghnach le haghaidh fíordheimhnithe an bhróicéara.
+  topic_prefix:
+    name: Réimír topaice MQTT
+    description: Réimír a úsáidtear do gach topaic MQTT a fhoilsítear.

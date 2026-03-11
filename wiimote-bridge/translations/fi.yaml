@@ -1,0 +1,22 @@
+configuration:
+  serial_port:
+    name: Sarjaportti
+    description: ESP32:n Home Assistant -isännällä tarjoama sarjalaite.
+  serial_baud:
+    name: Sarjayhteyden baudinopeus
+    description: ESP32-laiteohjelmiston käyttämä baudinopeus.
+  mqtt_host:
+    name: MQTT-isäntä
+    description: MQTT-välittäjän isäntänimi, joka vastaanottaa Wii Remote -tapahtumat.
+  mqtt_port:
+    name: MQTT-portti
+    description: MQTT-välittäjän TCP-portti.
+  mqtt_username:
+    name: MQTT-käyttäjätunnus
+    description: Valinnainen käyttäjätunnus välittäjän todennusta varten.
+  mqtt_password:
+    name: MQTT-salasana
+    description: Valinnainen salasana välittäjän todennusta varten.
+  topic_prefix:
+    name: MQTT-aiheiden etuliite
+    description: Etuliite, jota käytetään kaikissa julkaistuissa MQTT-aiheissa.
