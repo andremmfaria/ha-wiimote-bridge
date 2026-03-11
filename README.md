@@ -6,7 +6,7 @@ This project connects a Wii Remote to an ESP32 over Bluetooth and exposes button
 
 ## Architecture
 
-```
+```text
 Wii Remote
 ↓ Bluetooth
 ESP32
@@ -19,6 +19,8 @@ Home Assistant Automations
 The ESP32 handles the Bluetooth stack and translates Wiimote events into a simple JSON protocol over USB serial.  
 A Home Assistant add-on reads the serial stream and publishes MQTT topics that Home Assistant automations can use.
 
+The add-on is packaged as a Home Assistant custom repository and publishes pre-built multi-architecture container images to GHCR for tagged releases.
+
 ## Features
 
 - Uses inexpensive ESP32 hardware
@@ -30,7 +32,7 @@ A Home Assistant add-on reads the serial stream and publishes MQTT topics that H
 
 ## Repository Structure
 
-```
+```text
 ha-wiimote-bridge/
 ├── README.md
 ├── repository.yaml
@@ -78,13 +80,15 @@ mqtt_port: 1883
 topic_prefix: wiimote
 ```
 
-5. Start the add-on.
+Then:
 
-6. Pair the Wii Remote by pressing **1 + 2**.
+1. Start the add-on.
 
-7. Button events will appear in MQTT topics such as:
+2. Pair the Wii Remote by pressing **1 + 2**.
 
-```
+3. Button events will appear in MQTT topics such as:
+
+```text
 wiimote/1/button/A
 wiimote/1/button/B
 wiimote/1/button/PLUS
@@ -92,7 +96,7 @@ wiimote/1/button/PLUS
 
 Payloads:
 
-```
+```text
 ON
 OFF
 ```
@@ -116,16 +120,16 @@ action:
 
 Tested with:
 
-* ESP32-WROOM-32 development boards
-* Nintendo Wii Remote (standard)
+- ESP32-WROOM-32 development boards
+- Nintendo Wii Remote (standard)
 
 Other ESP32 boards should work as long as they support **Bluetooth Classic**.
 
 ## Known Limitations
 
-* Only button events are currently supported
-* Motion / accelerometer support will be added later
-* Only one Wii Remote supported in the current firmware
+- Only button events are currently supported
+- Motion / accelerometer support will be added later
+- Only one Wii Remote supported in the current firmware
 
 ## Why This Exists
 
@@ -136,11 +140,26 @@ This project repurposes them using inexpensive ESP32 hardware.
 
 ## Future Improvements
 
-* accelerometer support
-* rumble control from Home Assistant
-* LED control
-* multiple Wii Remotes
-* MQTT auto-discovery
+- accelerometer support
+- rumble control from Home Assistant
+- LED control
+- multiple Wii Remotes
+- MQTT auto-discovery
+
+## Release Process
+
+The Home Assistant add-on is released from Git tags.
+
+1. Update `wiimote-bridge/config.yaml` with the new add-on version.
+2. Update `wiimote-bridge/CHANGELOG.md`.
+3. Create and push a matching tag such as `v0.1.0`.
+
+The tag triggers GitHub Actions to:
+
+- validate the tag matches the add-on version
+- build architecture-specific images for Home Assistant
+- publish them to GHCR
+- create a GitHub release
 
 ## License
 
