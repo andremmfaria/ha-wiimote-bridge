@@ -16,7 +16,7 @@ The ESP32 must support **Bluetooth Classic** (not only BLE).
 ## Requirements
 
 - Arduino ESP32 Core **3.3.7**
-- `ESP32Wiimote` library by andremmfaria (v0.2)
+- `ESP32Wiimote` library
 - `arduino-cli` or Arduino IDE
 
 ## Installing the ESP32 Core
@@ -35,18 +35,25 @@ arduino-cli core list
 
 ## Installing the Wiimote Library
 
-Install directly from GitHub:
+Install directly from the official repository:
 
 ```
-arduino-cli lib install --git-url [https://github.com/andremmfaria/ESP32Wiimote](https://github.com/andremmfaria/ESP32Wiimote)
+arduino-cli lib install ESP32Wiimote
 ```
 
 ## Firmware Location
 
 ```
 esp32/
-    └── wiimote_serial_bridge/
-        └── wiimote_serial_bridge.ino
+└── wiimote-serial-bridge/
+    ├── wiimote-serial-bridge.ino
+    ├── include/
+    │   ├── buttons.h
+    │   ├── messages.h
+    │   └── state.h
+    └── src/
+        ├── buttons.cpp
+        └── messages.cpp
 ```
 
 ## Compile

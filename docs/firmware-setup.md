@@ -15,7 +15,7 @@ This setup was tested with:
 - `arduino-cli`
 - WSL on Windows
 - Arduino ESP32 core `3.3.7`
-- `ESP32Wiimote` library v0.2 : https://github.com/andremmfaria/ESP32Wiimote
+- `ESP32Wiimote` library
 
 ---
 
@@ -78,7 +78,7 @@ esp32:esp32 3.3.7
 Install directly from GitHub:
 
 ```bash
-arduino-cli lib install --git-url https://github.com/andremmfaria/ESP32Wiimote
+arduino-cli lib install ESP32Wiimote`
 ```
 
 You can confirm installation with:

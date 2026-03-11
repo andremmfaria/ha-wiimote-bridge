@@ -41,9 +41,16 @@ ha-wiimote-bridge/
 │   └── ha-addon-setup.md
 ├── esp32/
 │   ├── README.md
-│   └── wiimote_serial_bridge/
-│       └── wiimote_serial_bridge.ino
-└── wiimote_bridge/
+│   └── wiimote-serial-bridge/
+│       ├── wiimote-serial-bridge.ino
+│       ├── include/
+│       │   ├── buttons.h
+│       │   ├── messages.h
+│       │   └── state.h
+│       └── src/
+│           ├── buttons.cpp
+│           └── messages.cpp
+└── wiimote-bridge/
     ├── config.yaml
     ├── Dockerfile
     ├── run.sh
@@ -55,7 +62,7 @@ ha-wiimote-bridge/
 ## Quick Start
 
 1. Flash the ESP32 firmware  
-   → see `esp32/README.md`
+   → see [docs/firmware-setup.md](docs/firmware-setup.md) or `esp32/README.md`
 
 2. Connect the ESP32 to the Home Assistant host via USB.
 
