@@ -57,8 +57,12 @@ ha-wiimote-bridge/
     ├── Dockerfile
     ├── run.sh
     └── app/
-        ├── requirements.txt
-        └── main.py
+    ├── pyproject.toml
+    └── src/
+      └── wiimote_bridge/
+        ├── core/
+        ├── transport/
+        └── utils/
 ```
 
 ## Quick Start

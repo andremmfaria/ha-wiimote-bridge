@@ -15,8 +15,12 @@ RUN apk add --no-cache \
     py3-pip \
     python3
 
-COPY app/requirements.txt /tmp/requirements.txt
-RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
+# Use uv to install pinned runtime dependencies and the local package.
+RUN pip3 install --no-cache-dir uv==0.6.6
+
+COPY app/pyproject.toml /app/pyproject.toml
+COPY app/src /app/src
+RUN uv pip install --system /app
 
 COPY run.sh /run.sh
 COPY app /app
