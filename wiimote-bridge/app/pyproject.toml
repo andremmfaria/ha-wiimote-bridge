@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=69"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
 
 [project]
 name = "wiimote-bridge"
@@ -9,18 +9,18 @@ description = "Wii Remote serial to MQTT bridge for Home Assistant"
 requires-python = ">=3.11"
 dependencies = [
   "pyserial==3.5",
-  "paho-mqtt==1.6.1",
-  "dynaconf==3.2.6",
+  "paho-mqtt==2.1.0",
+  "dynaconf==3.2.12",
 ]
 
 [dependency-groups]
 dev = [
-  "pytest==8.3.5",
-  "pytest-cov==5.0.0",
+  "pytest==9.0.2",
+  "pytest-cov==7.0.0",
 ]
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.hatch.build.targets.wheel]
+packages = ["src/wiimote_bridge"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=wiimote_bridge --cov-report=term-missing --cov-fail-under=80"
