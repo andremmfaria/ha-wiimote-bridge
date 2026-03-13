@@ -9,6 +9,7 @@ def test_load_settings_from_environment(monkeypatch):
     monkeypatch.setenv("MQTT_USERNAME", "user")
     monkeypatch.setenv("MQTT_PASSWORD", "secret")
     monkeypatch.setenv("TOPIC_PREFIX", "wm")
+    monkeypatch.setenv("LOG_LEVEL", "DEBUG")
 
     settings = load_settings()
 
@@ -19,3 +20,4 @@ def test_load_settings_from_environment(monkeypatch):
     assert settings.mqtt_username == "user"
     assert settings.mqtt_password == "secret"
     assert settings.topic_prefix == "wm"
+    assert settings.log_level == "debug"

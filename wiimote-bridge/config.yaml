@@ -27,6 +27,7 @@ options:
   mqtt_username: ""
   mqtt_password: ""
   topic_prefix: "wiimote"
+  log_level: "info"
 
 schema:
   serial_port: device(subsystem=tty)
@@ -36,3 +37,4 @@ schema:
   mqtt_username: str
   mqtt_password: password
   topic_prefix: str
+  log_level: list(debug|info|warning|error)

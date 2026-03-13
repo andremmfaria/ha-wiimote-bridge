@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: Prefixo de tópico MQTT
     description: Prefixo usado para todos os tópicos MQTT publicados.
+  log_level:
+    name: Nível de logs
+    description: Controla o nível de detalhe que a aplicação escreve no registo do add-on.

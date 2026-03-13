@@ -45,6 +45,7 @@ def test_run_processes_message_and_shuts_down(monkeypatch):
     fake_client = _FakeClient()
     fake_serial = _FakeSerial([b'{"type":"btn","wiimote":1,"btn":"A","down":true}\n'])
     seen = {}
+    configured = {}
 
     def fake_connect(_settings):
         return fake_client
@@ -56,17 +57,45 @@ def test_run_processes_message_and_shuts_down(monkeypatch):
         seen["called"] = True
         handlers[signal.SIGTERM](signal.SIGTERM, None)
 
+    def fake_configure_logging(level_name):
+        configured["level"] = level_name
+        return level_name
+
     monkeypatch.setattr(run_module, "connect_mqtt", fake_connect)
     monkeypatch.setattr(run_module, "open_serial", fake_open_serial)
     monkeypatch.setattr(run_module, "handle_message", fake_handle_message)
+    monkeypatch.setattr(run_module, "configure_logging", fake_configure_logging)
 
     result = run_module.run()
 
     assert result == 0
+    assert configured["level"] == "info"
     assert seen["called"] is True
     assert fake_serial.closed is True
     assert fake_client.stopped is True
     assert fake_client.disconnected is True
+
+
+def test_run_uses_configured_log_level(monkeypatch):
+    handlers = _patch_signal_handlers(monkeypatch)
+    fake_client = _FakeClient()
+    configured = {}
+
+    monkeypatch.setenv("LOG_LEVEL", "warning")
+    monkeypatch.setattr(run_module, "connect_mqtt", lambda _settings: fake_client)
+    monkeypatch.setattr(run_module, "open_serial", lambda _settings: (_ for _ in ()).throw(RuntimeError("boom")))
+    monkeypatch.setattr(run_module.time, "sleep", lambda _seconds: handlers[signal.SIGTERM](signal.SIGTERM, None))
+
+    def fake_configure_logging(level_name):
+        configured["level"] = level_name
+        return level_name
+
+    monkeypatch.setattr(run_module, "configure_logging", fake_configure_logging)
+
+    result = run_module.run()
+
+    assert result == 0
+    assert configured["level"] == "warning"
 
 
 def test_run_handles_open_serial_failure(monkeypatch):

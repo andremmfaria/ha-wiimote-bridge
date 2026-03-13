@@ -12,6 +12,7 @@ class Settings:
     mqtt_username: str
     mqtt_password: str
     topic_prefix: str
+    log_level: str = "info"
 
 
 def load_settings() -> Settings:
@@ -25,4 +26,5 @@ def load_settings() -> Settings:
         mqtt_username=settings.get("MQTT_USERNAME", ""),
         mqtt_password=settings.get("MQTT_PASSWORD", ""),
         topic_prefix=settings.get("TOPIC_PREFIX", "wiimote"),
+        log_level=str(settings.get("LOG_LEVEL", "info")).lower(),
     )

@@ -9,6 +9,7 @@ export MQTT_PORT
 export MQTT_USERNAME
 export MQTT_PASSWORD
 export TOPIC_PREFIX
+export LOG_LEVEL
 
 SERIAL_PORT="$(bashio::config 'serial_port')"
 SERIAL_BAUD="$(bashio::config 'serial_baud')"
@@ -17,8 +18,10 @@ MQTT_PORT="$(bashio::config 'mqtt_port')"
 MQTT_USERNAME="$(bashio::config 'mqtt_username')"
 MQTT_PASSWORD="$(bashio::config 'mqtt_password')"
 TOPIC_PREFIX="$(bashio::config 'topic_prefix')"
+LOG_LEVEL="$(bashio::config 'log_level')"
 
 bashio::log.info "Starting WiiMote Bridge"
+bashio::log.info "Application log level: ${LOG_LEVEL}"
 bashio::log.info "Serial port: ${SERIAL_PORT}"
 bashio::log.info "Serial baud: ${SERIAL_BAUD}"
 bashio::log.info "MQTT host: ${MQTT_HOST}:${MQTT_PORT}"

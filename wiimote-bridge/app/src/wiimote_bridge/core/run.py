@@ -9,7 +9,7 @@ from wiimote_bridge.core.handlers import handle_message
 from wiimote_bridge.transport.mqtt_client import connect_mqtt
 from wiimote_bridge.transport.serial_reader import open_serial
 from wiimote_bridge.utils.config import load_settings
-from wiimote_bridge.utils.logging import get_logger
+from wiimote_bridge.utils.logging import configure_logging, get_logger
 
 
 LOGGER = get_logger(__name__)
@@ -17,7 +17,15 @@ LOGGER = get_logger(__name__)
 
 def run() -> int:
     settings = load_settings()
+    configured_log_level = configure_logging(settings.log_level)
     running = True
+
+    LOGGER.info("Starting WiiMote Bridge application")
+    LOGGER.info("Log level: %s", configured_log_level.upper())
+    LOGGER.info("Serial port: %s @ %s baud", settings.serial_port, settings.serial_baud)
+    LOGGER.info("MQTT broker: %s:%s", settings.mqtt_host, settings.mqtt_port)
+    LOGGER.debug("MQTT username configured: %s", bool(settings.mqtt_username))
+    LOGGER.debug("Topic prefix: %s", settings.topic_prefix)
 
     def handle_signal(signum: int, frame: Any) -> None:
         nonlocal running
@@ -36,6 +44,7 @@ def run() -> int:
             if ser is None:
                 try:
                     ser = open_serial(settings)
+                    LOGGER.info("Serial connection established")
                 except Exception as exc:
                     LOGGER.error("Serial open failed: %s", exc)
                     time.sleep(5)
@@ -53,6 +62,7 @@ def run() -> int:
                 LOGGER.info("SERIAL %s", text)
 
                 if not text.startswith("{"):
+                    LOGGER.debug("Skipping non-JSON serial line")
                     continue
 
                 try:
@@ -87,6 +97,7 @@ def run() -> int:
         try:
             client.loop_stop()
             client.disconnect()
+            LOGGER.info("MQTT client disconnected")
         except Exception:
             pass
 
