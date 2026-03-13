@@ -1,105 +1,68 @@
 # Home Assistant Add-on Setup
 
-This guide explains how to install and configure the WiiMote Bridge add-on in Home Assistant.
+This guide covers installation, configuration, validation, and troubleshooting for the WiiMote Bridge add-on in Home Assistant.
 
-The add-on reads JSON events from the ESP32 over USB serial and publishes them to MQTT so Home Assistant automations can use them.
+The add-on reads JSON events from the ESP32 over USB serial and publishes supported events to MQTT.
 
----
+## Requirements
 
-# Requirements
+Before installation, make sure you have:
 
-Before installing the add-on, make sure you have:
+- Home Assistant OS or Home Assistant Supervised with add-on support
+- the ESP32 firmware flashed from `esp32/wiimote-serial-bridge`
+- the ESP32 connected to the Home Assistant host over USB
+- an MQTT broker, such as the official Mosquitto broker add-on
+- a Wii Remote available for pairing
 
-- Home Assistant OS
-- an ESP32 running the firmware from `esp32/wiimote_serial_bridge`
-- the ESP32 connected to the Home Assistant host via USB
-- the Mosquitto MQTT broker add-on installed
+If the firmware is not ready yet, complete `docs/firmware-setup.md` first.
 
-If you have not flashed the firmware yet, follow:
+## Install or Verify MQTT
 
-```
-docs/firmware-setup.md
-```
+The bridge publishes events through MQTT, so a broker must already be reachable.
 
----
+Typical Home Assistant path:
 
-# Install the MQTT Broker
-
-The bridge publishes events to MQTT, so a broker must be running.
-
-Install the official **Mosquitto broker** add-on.
-
-In Home Assistant:
-
-```
-Settings → Add-ons → Add-on Store
+```text
+Settings -> Add-ons -> Add-on Store
 ```
 
-Install:
+Install and start:
 
-```
+```text
 Mosquitto broker
 ```
 
-Start the add-on.
+Then verify the MQTT integration exists under:
 
-Once started, the MQTT integration should automatically appear in Home Assistant.
-
-If not, add it manually:
-
-```
-Settings → Devices & Services → Add Integration → MQTT
+```text
+Settings -> Devices & Services
 ```
 
----
+## Add the Repository
 
-# Add the Repository
+Open the add-on store and add this repository:
 
-The WiiMote Bridge add-on is installed from a custom repository.
-
-Open the add-on store.
-
-```
-Settings → Add-ons → Add-on Store
+```text
+https://github.com/andremmfaria/ha-wiimote-bridge
 ```
 
-Click the **three dots menu** in the top right.
+Navigation path:
 
-Select:
-
-```
-Repositories
+```text
+Settings -> Add-ons -> Add-on Store -> menu -> Repositories
 ```
 
-Add your repository URL:
+## Install the Add-on
 
-```
-[https://github.com/andremmfaria/ha-wiimote-bridge](https://github.com/andremmfaria/ha-wiimote-bridge)
-```
+Find and install:
 
-Click **Add**.
-
-The new add-on should now appear in the store.
-
----
-
-# Install the Add-on
-
-Find the add-on:
-
-```
+```text
 WiiMote Bridge
 ```
 
-Click **Install**.
+After install, open the add-on page and move to the configuration tab.
 
-Once installation completes, open the add-on page.
-
----
-
-# Configure the Add-on
-
-Open the **Configuration** tab.
+## Configuration
 
 Example configuration:
 
@@ -111,184 +74,223 @@ mqtt_port: 1883
 mqtt_username: ""
 mqtt_password: ""
 topic_prefix: wiimote
+log_level: info
 ```
 
-Explanation:
+### Option Reference
 
-| Option        | Description                        |
-| ------------- | ---------------------------------- |
-| serial_port   | serial device used by the ESP32    |
-| serial_baud   | serial speed (must match firmware) |
-| mqtt_host     | hostname of the MQTT broker        |
-| mqtt_port     | MQTT port                          |
-| mqtt_username | optional MQTT username             |
-| mqtt_password | optional MQTT password             |
-| topic_prefix  | base topic for published messages  |
+| Option | Meaning |
+| --- | --- |
+| `serial_port` | Host serial device used by the ESP32 |
+| `serial_baud` | Serial speed, must match firmware |
+| `mqtt_host` | Hostname or IP of the MQTT broker |
+| `mqtt_port` | Broker TCP port |
+| `mqtt_username` | Optional MQTT username |
+| `mqtt_password` | Optional MQTT password |
+| `topic_prefix` | Base topic prefix for all MQTT publications |
+| `log_level` | Application log verbosity: `debug`, `info`, `warning`, or `error` |
 
----
+### Choosing `log_level`
 
-# Find the Serial Device
+Use:
 
-If you are unsure which serial device your ESP32 uses, go to:
+- `info` for normal operation
+- `debug` when validating serial traffic or troubleshooting parsing
+- `warning` to reduce noise while keeping warnings and errors
+- `error` to show only failures
 
-```
-Settings → System → Hardware
-```
+## Find the Correct Serial Device
 
-Look for a USB serial device.
+In Home Assistant, open:
 
-Examples:
-
-```
-/dev/ttyUSB0
-/dev/ttyUSB1
-/dev/ttyACM0
+```text
+Settings -> System -> Hardware
 ```
 
-Update the add-on configuration accordingly.
+Look for the ESP32 USB serial entry. Common values are:
 
----
+- `/dev/ttyUSB0`
+- `/dev/ttyUSB1`
+- `/dev/ttyACM0`
 
-# Start the Add-on
+Use that exact value in `serial_port`.
 
-After saving the configuration:
+## Start the Add-on
 
-1. Go to the **Info** tab
-2. Click **Start**
+After saving configuration:
 
-Then open the **Logs** tab.
+1. Open the `Info` tab.
+2. Start the add-on.
+3. Open the `Logs` tab.
 
-You should see messages similar to:
+Expected startup output includes a shell summary and application logs such as:
 
-```
+```text
 Starting WiiMote Bridge
+Application log level: info
 Serial port: /dev/ttyUSB0
-Connected to MQTT broker
-Opening serial device
+Serial baud: 115200
+MQTT host: core-mosquitto:1883
+Topic prefix: wiimote
+INFO wiimote_bridge.core.run: Starting WiiMote Bridge application
+INFO wiimote_bridge.transport.mqtt_client: Connected to MQTT broker at core-mosquitto:1883
+INFO wiimote_bridge.transport.serial_reader: Opening serial port /dev/ttyUSB0 at 115200 baud
+INFO wiimote_bridge.core.run: Serial connection established
 ```
 
-Once the ESP32 connects you will see lines like:
+## Pair the Wii Remote
 
-```
+Press `1 + 2` on the Wii Remote while the firmware and add-on are running.
+
+Once connected, you should see serial lines such as:
+
+```text
 SERIAL {"type":"status","wiimote":1,"connected":true}
 SERIAL {"type":"btn","wiimote":1,"btn":"A","down":true}
+```
+
+And matching MQTT publication logs such as:
+
+```text
 MQTT wiimote/1/button/A -> ON
 ```
 
----
+## MQTT Topics Published
 
-# Pair the Wii Remote
+### Button Topics
 
-Press:
-
-```
-1 + 2
+```text
+<topic_prefix>/<wiimote_id>/button/<button_name>
 ```
 
-on the Wii Remote.
+Examples:
 
-The ESP32 firmware will connect and begin sending events.
-
----
-
-# MQTT Topics
-
-Button events are published to MQTT.
-
-Example topics:
-
-```
+```text
 wiimote/1/button/A
 wiimote/1/button/B
 wiimote/1/button/PLUS
 wiimote/1/button/MINUS
 ```
 
-Payload values:
+Payloads:
 
-```
-ON
-OFF
+- `ON` for press
+- `OFF` for release
+
+### Connection State Topic
+
+```text
+<topic_prefix>/<wiimote_id>/status/connected
 ```
 
 Example:
 
+```text
+wiimote/1/status/connected
 ```
-topic: wiimote/1/button/A
-payload: ON
+
+Payloads:
+
+- `true`
+- `false`
+
+This topic is retained.
+
+### Heartbeat Topic
+
+```text
+<topic_prefix>/<wiimote_id>/status/heartbeat
 ```
 
----
+The payload is the original JSON heartbeat object from the firmware.
 
-# Create a Home Assistant Automation
+## What the Add-on Currently Ignores
 
-You can now use MQTT triggers.
+The firmware emits additional information that the add-on does not yet map to MQTT:
 
-Example automation:
+- firmware `ready` status
+- pairing prompt notes
+- waiting messages
+- battery messages
+
+Those messages still appear in add-on serial logs at suitable log levels.
+
+## Example Automation
 
 ```yaml
-alias: Wii Remote A Button
+alias: Toggle living room light from Wii Remote A
 trigger:
   - platform: mqtt
     topic: wiimote/1/button/A
     payload: "ON"
-
 action:
   - service: light.toggle
     target:
       entity_id: light.living_room
-
 mode: single
 ```
 
----
+## Validation Checklist
 
-# Debugging
+After installation, verify these in order:
 
-If button presses do not appear:
+1. The add-on starts and stays running.
+2. The logs show a successful MQTT connection.
+3. The logs show a successful serial connection.
+4. Pressing `1 + 2` on the Wii Remote produces a connected status line.
+5. Button presses produce MQTT publications.
+6. A Home Assistant automation triggers from one of those topics.
 
-1. Check the add-on logs
-2. Confirm the correct serial port
-3. Confirm the ESP32 firmware is running
-4. Confirm the MQTT broker is running
+## Troubleshooting
 
-You can also monitor MQTT traffic using tools such as:
+### No events appear in MQTT
 
-```
-MQTT Explorer
-```
+Check:
 
-Subscribe to:
+1. `serial_port` is correct.
+2. `serial_baud` matches firmware.
+3. The ESP32 firmware is running and producing valid JSON.
+4. The MQTT broker is running and reachable.
+5. Your automation is listening to the correct `topic_prefix`.
 
-```
-wiimote/#
-```
+### `Serial open failed`
 
----
+Likely causes:
 
-# Stopping the Add-on
+- wrong serial device path
+- ESP32 disconnected
+- USB cable provides power only
+- device path changed after reconnect
 
-To stop the bridge:
+The add-on retries every 5 seconds.
 
-```
-Add-on → Info → Stop
-```
+### `Skipping invalid JSON line`
 
-The ESP32 firmware will continue running but no MQTT events will be published until the add-on is restarted.
+This usually points to:
 
----
+- wrong baud rate
+- corrupted serial output
+- unexpected device on the selected serial port
 
-# Next Steps
+Set `log_level: debug` and verify the raw serial output with a serial monitor if needed.
 
-Once the bridge is working you can:
+### MQTT connection errors
 
-* create Home Assistant automations
-* control scenes and media players
-* experiment with gesture-based control (future firmware updates)
+Verify:
 
-Future features planned for the project include:
+1. `mqtt_host` is reachable.
+2. `mqtt_port` is correct.
+3. Credentials are valid if authentication is enabled.
 
-* accelerometer events
-* rumble control
-* LED status feedback
-* support for multiple Wii Remotes
+## Stopping the Add-on
+
+Stopping the add-on disconnects the MQTT client and stops topic publication. The ESP32 firmware continues running until power or USB is removed.
+
+## Next Steps
+
+Once the add-on is stable, you can build higher-level automations around:
+
+- lights and scenes
+- media controls
+- connection-state notifications
+- heartbeat monitoring

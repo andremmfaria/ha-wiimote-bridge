@@ -1,99 +1,120 @@
 # Serial Protocol
 
-This document defines the JSON protocol used between the ESP32 firmware and the Home Assistant bridge add-on.
+This document defines the JSON protocol spoken by the ESP32 firmware over USB serial.
 
-The ESP32 emits newline-delimited JSON messages over USB serial.
+The Home Assistant add-on consumes this protocol line by line and currently forwards a subset of the messages to MQTT.
 
-Each message is a single JSON object.
+## Transport Rules
+
+The protocol is emitted as line-delimited JSON.
+
+Rules:
+
+- each line is one JSON object
+- objects are newline-terminated
+- ordering is preserved
+- there is no framing beyond newlines
+- the serial speed is `115200`
 
 Example stream:
 
-```
+```text
 {"type":"status","device":"esp32","ready":true}
+{"type":"status","wiimote":1,"connected":false,"note":"press_1_and_2"}
 {"type":"status","wiimote":1,"connected":true}
 {"type":"btn","wiimote":1,"btn":"A","down":true}
 {"type":"btn","wiimote":1,"btn":"A","down":false}
-{"type":"heartbeat","device":"esp32","wiimote":1,"connected":true}
+{"type":"heartbeat","device":"esp32","wiimote":1,"connected":true,"battery":87}
+{"type":"battery","wiimote":1,"level":87}
 ```
 
-Messages are emitted as **line-delimited JSON (LDJSON)**.
+## Message Types
 
-This makes parsing simple and allows the bridge to process events incrementally.
+### `status`
 
----
+Status messages are used for firmware lifecycle state, connection state, and operator hints.
 
-# Message Types
+#### Firmware Ready
 
-## Status
-
-Status messages describe device state.
-
-Example:
-
-```
+```json
 {"type":"status","device":"esp32","ready":true}
 ```
 
 Fields:
 
-| Field | Description |
-| ------ | ------------- |
-| type | `status` |
-| device | identifier of the emitting device |
-| ready | firmware boot complete |
+| Field | Meaning |
+| --- | --- |
+| `type` | Always `status` |
+| `device` | Device identifier, currently `esp32` |
+| `ready` | Firmware boot completed |
 
----
+#### Pairing Prompt
 
-## Wiimote Connection Status
-
-Example:
-
+```json
+{"type":"status","wiimote":1,"connected":false,"note":"press_1_and_2"}
 ```
+
+Fields:
+
+| Field | Meaning |
+| --- | --- |
+| `type` | Always `status` |
+| `wiimote` | Controller identifier |
+| `connected` | Current connection state |
+| `note` | Human-oriented pairing hint |
+
+#### Waiting State
+
+```json
+{"type":"status","wiimote":1,"connected":false,"waiting":true}
+```
+
+This is emitted periodically while the controller is not connected.
+
+#### Connection State
+
+```json
 {"type":"status","wiimote":1,"connected":true}
 ```
 
+This is emitted when the controller connects or disconnects.
+
 Fields:
 
-| Field | Description |
-| ------ | ------------- |
-| type | `status` |
-| wiimote | controller identifier |
-| connected | connection state |
+| Field | Meaning |
+| --- | --- |
+| `type` | Always `status` |
+| `wiimote` | Controller identifier |
+| `connected` | `true` or `false` |
 
-Connection status is emitted when the Wiimote connects.
+### `btn`
 
----
+Button messages represent edge transitions, not a continuously repeated state stream.
 
-## Button Event
+Press example:
 
-Example:
-
-```
+```json
 {"type":"btn","wiimote":1,"btn":"A","down":true}
 ```
 
-Fields:
+Release example:
 
-| Field | Description |
-| ------ | ------------- |
-| type | `btn` |
-| wiimote | controller identifier |
-| btn | button name |
-| down | `true` if pressed |
-
-Release event:
-
-```
+```json
 {"type":"btn","wiimote":1,"btn":"A","down":false}
 ```
 
----
+Fields:
 
-# Button Names
+| Field | Meaning |
+| --- | --- |
+| `type` | Always `btn` |
+| `wiimote` | Controller identifier |
+| `btn` | Button name |
+| `down` | `true` for press, `false` for release |
 
-Supported button identifiers:
+Supported button names:
 
-```
+```text
 A
 B
 ONE
@@ -107,92 +128,97 @@ LEFT
 RIGHT
 ```
 
-These names are chosen to match the labels on the Wii Remote.
+### `heartbeat`
 
----
+Heartbeat messages confirm the firmware is alive and include current connection state.
 
-# Heartbeat
+Example while connected:
 
-Example:
-
-```
-{"type":"heartbeat","device":"esp32","wiimote":1,"connected":true}
+```json
+{"type":"heartbeat","device":"esp32","wiimote":1,"connected":true,"battery":87}
 ```
 
-Heartbeat messages are emitted periodically by the firmware.
+Example while disconnected:
 
-Purpose:
+```json
+{"type":"heartbeat","device":"esp32","wiimote":1,"connected":false}
+```
 
-- allow the bridge to detect stale serial connections
-- confirm firmware is still running
-- confirm Wiimote connection state
+Fields:
+
+| Field | Meaning |
+| --- | --- |
+| `type` | Always `heartbeat` |
+| `device` | Device identifier |
+| `wiimote` | Controller identifier |
+| `connected` | Current connection state |
+| `battery` | Present when a connected controller battery value is known |
 
 Current interval:
 
-```
+```text
 10 seconds
 ```
 
----
+### `battery`
 
-# Message Ordering
+Battery messages are emitted when the battery level changes.
 
-The firmware guarantees that:
+Example:
 
-- messages are emitted sequentially
-- each message is a complete JSON object
-- messages are separated by newline characters
-
-Example raw serial stream:
-
-```
-{"type":"btn","wiimote":1,"btn":"A","down":true}
-{"type":"btn","wiimote":1,"btn":"A","down":false}
-```
-
----
-
-# Future Extensions
-
-The protocol is intentionally extensible.
-
-Possible future message types:
-
-## Accelerometer
-
-```
-{"type":"accel","wiimote":1,"x":0.12,"y":-0.05,"z":0.98}
-```
-
-## Battery Level
-
-```
+```json
 {"type":"battery","wiimote":1,"level":87}
 ```
 
-## Rumble Control
+Fields:
 
-Bridge → firmware:
+| Field | Meaning |
+| --- | --- |
+| `type` | Always `battery` |
+| `wiimote` | Controller identifier |
+| `level` | Battery percentage-like level from the library |
 
-```
-{"type":"cmd","wiimote":1,"rumble":true}
-```
+## Add-on Mapping
 
-## LED Control
+The current add-on behavior is intentionally narrower than the firmware protocol.
 
-```
-{"type":"cmd","wiimote":1,"led":2}
-```
+Current mapping:
 
----
+| Serial message | MQTT result |
+| --- | --- |
+| `btn` | Published to `<prefix>/<id>/button/<button>` with `ON` or `OFF` |
+| `status` with `connected` | Published to `<prefix>/<id>/status/connected` with `true` or `false` |
+| `heartbeat` | Published to `<prefix>/<id>/status/heartbeat` as raw JSON |
+| `status` with `ready`, `waiting`, or `note` | Not currently published |
+| `battery` | Not currently published |
 
-# Design Goals
+This distinction matters when debugging. A message can be valid protocol output and still not result in an MQTT topic.
 
-The protocol was designed to be:
+## Ordering and State Semantics
 
-- human readable
-- easy to parse
-- extensible
+The firmware emits messages sequentially. Button events are emitted on transitions only.
+
+Additionally, the firmware captures the first observed button state after a connection and uses it as a baseline. This avoids emitting false transition events immediately after connection.
+
+## Design Goals
+
+The protocol is designed to be:
+
+- human-readable
+- easy to inspect with a serial monitor
+- simple to parse incrementally
 - independent of Home Assistant
+- extensible for new event types
 
-Any system capable of reading JSON over serial can consume the events.
+Any system capable of reading line-delimited JSON over serial can consume it.
+
+## Future Extensions
+
+Likely future additions include:
+
+- accelerometer events
+- battery forwarding through the add-on
+- command messages from the bridge to firmware
+- rumble control
+- LED control
+- multi-controller routing beyond a single fixed identifier

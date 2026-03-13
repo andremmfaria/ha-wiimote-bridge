@@ -1,57 +1,85 @@
 # Firmware Setup
 
-This guide explains how to build and flash the ESP32 firmware for the WiiMote Bridge project.
+This guide covers building, flashing, and validating the ESP32 firmware used by the WiiMote Bridge project.
 
-The firmware connects to a Nintendo Wii Remote over Bluetooth and emits JSON events over USB serial.
+The firmware does three main jobs:
 
----
+1. Connect to a Wii Remote over Bluetooth Classic.
+2. Convert controller state changes into JSON messages.
+3. Emit those messages over USB serial for the Home Assistant add-on.
 
-# Tested Environment
+## What the Firmware Emits
 
-This setup was tested with:
+The current firmware sends line-delimited JSON over the serial port. Depending on state, you can see messages such as:
 
-- ESP32-WROOM-32 development board ([link](https://www.amazon.co.uk/dp/B0DGLCWR76))
+```text
+{"type":"status","device":"esp32","ready":true}
+{"type":"status","wiimote":1,"connected":false,"note":"press_1_and_2"}
+{"type":"status","wiimote":1,"connected":false,"waiting":true}
+{"type":"status","wiimote":1,"connected":true}
+{"type":"btn","wiimote":1,"btn":"A","down":true}
+{"type":"heartbeat","device":"esp32","wiimote":1,"connected":true,"battery":87}
+{"type":"battery","wiimote":1,"level":87}
+```
+
+The add-on currently forwards button events, connection status, and heartbeat messages to MQTT. Battery messages are emitted by the firmware but are not yet published by the add-on.
+
+## Tested Environment
+
+Known working setup in this repository:
+
+- ESP32-WROOM-32 development board
 - Nintendo Wii Remote
-- `arduino-cli`
-- WSL on Windows
 - Arduino ESP32 core `3.3.7`
+- `arduino-cli`
 - `ESP32Wiimote` library
 
----
-
-# Requirements
+## Requirements
 
 You need:
 
-* an ESP32 board with Bluetooth Classic support
-* a USB cable
-* `arduino-cli`
-* Python 3
-* The `ESP32Wiimote` library
+- an ESP32 board with Bluetooth Classic support
+- a USB data cable
+- `arduino-cli` or the Arduino IDE
+- Python 3 if you want to inspect serial output with `miniterm`
+- the `ESP32Wiimote` library
 
----
+## Firmware Location
 
-# Install arduino-cli
+The firmware lives here:
+
+```text
+esp32/
+    wiimote-serial-bridge/
+        wiimote-serial-bridge.ino
+```
+
+Compile and upload from:
+
+```bash
+cd esp32/wiimote-serial-bridge
+```
+
+## Install `arduino-cli`
 
 On Debian, Ubuntu, or WSL:
 
 ```bash
 sudo apt update
-sudo apt install curl
+sudo apt install -y curl
 curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
 sudo mv bin/arduino-cli /usr/local/bin/
-```
-
-Initialize the config:
-
-```bash
 arduino-cli config init
 arduino-cli core update-index
 ```
 
----
+Confirm the tool is available:
 
-# Install the ESP32 Core
+```bash
+arduino-cli version
+```
+
+## Install the ESP32 Core
 
 Install the tested version:
 
@@ -65,71 +93,55 @@ Verify:
 arduino-cli core list
 ```
 
-Expected output should include:
+You should see an entry that includes `esp32:esp32` and version `3.3.7`.
 
-```text
-esp32:esp32 3.3.7
-```
+## Install the Wii Remote Library
 
----
-
-# Install the Wiimote Library
-
-Install directly from GitHub:
+If the library is available in your index, you can try:
 
 ```bash
-arduino-cli lib install ESP32Wiimote`
+arduino-cli lib install ESP32Wiimote
 ```
 
-You can confirm installation with:
+If that fails, install from GitHub instead:
+
+```bash
+arduino-cli lib install --git-url https://github.com/andremmfaria/ESP32Wiimote
+```
+
+Verify:
 
 ```bash
 arduino-cli lib list | grep Wiimote
 ```
 
----
+## Important Runtime Details
 
-# Repository Layout
+The firmware currently behaves like this:
 
-The firmware is located here:
+- serial speed is `115200`
+- Bluetooth library logging is set to warning level
+- accelerometer and nunchuk stick data are filtered out
+- the first post-connect button sample is used as a baseline
+- heartbeat interval is 10 seconds
+- waiting reminder interval is 5 seconds when disconnected
+- battery refresh is requested every 60 seconds while connected
 
-```text
-esp32/
-└── wiimote_serial_bridge/
-    └── wiimote_serial_bridge.ino
-```
+These values matter when you validate output against the Home Assistant add-on configuration.
 
-Change into that directory before compiling:
+## WSL USB Access
 
-```bash
-cd esp32/wiimote_serial_bridge
-```
+If you are using WSL, the ESP32 USB device must be attached to the Linux environment before flashing.
 
----
-
-# USB Access in WSL
-
-If you are using WSL, the ESP32 USB device must be attached to WSL before you can flash it.
-
-First, on Windows, list USB devices:
+From Windows PowerShell:
 
 ```powershell
 usbipd list
-```
-
-Bind the ESP32 device:
-
-```powershell
 usbipd bind --busid <BUSID>
-```
-
-Attach it to WSL:
-
-```powershell
 usbipd attach --wsl --busid <BUSID>
 ```
 
-Then inside WSL, confirm the serial device exists:
+Then inside WSL:
 
 ```bash
 ls /dev/ttyUSB* /dev/ttyACM* 2>/dev/null
@@ -141,9 +153,7 @@ Typical result:
 /dev/ttyUSB0
 ```
 
----
-
-# Compile the Firmware
+## Compile the Firmware
 
 From the firmware directory:
 
@@ -151,44 +161,40 @@ From the firmware directory:
 arduino-cli compile --fqbn esp32:esp32:esp32 .
 ```
 
-A successful build will end with output similar to:
+Successful output ends with storage and memory usage summary lines.
 
-```text
-Sketch uses ... bytes of program storage space.
-Global variables use ... bytes of dynamic memory.
-```
+## Upload the Firmware
 
----
-
-# Upload the Firmware
-
-Flash the ESP32:
+Flash the board with:
 
 ```bash
 arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:esp32 .
 ```
 
-Replace `/dev/ttyUSB0` with your actual port if needed.
+Replace `/dev/ttyUSB0` with the correct serial device for your machine.
 
-If flashing fails, try pressing and holding the **BOOT** button on the ESP32 during the start of the upload.
+If upload fails:
 
----
+1. Confirm the correct port.
+2. Disconnect and reconnect the ESP32.
+3. Hold the `BOOT` button during the beginning of the upload if your board requires it.
+4. Make sure no serial monitor is already using the port.
 
-# Monitor Serial Output
+## Verify Serial Output
 
-To verify the firmware is running:
+To inspect the serial stream:
 
 ```bash
 python3 -m serial.tools.miniterm /dev/ttyUSB0 115200
 ```
 
-If your user does not have permission for the serial device, use:
+If your user lacks permission:
 
 ```bash
 sudo python3 -m serial.tools.miniterm /dev/ttyUSB0 115200
 ```
 
-You should see output similar to:
+Expected startup output is typically:
 
 ```text
 {"type":"status","device":"esp32","ready":true}
@@ -196,95 +202,73 @@ You should see output similar to:
 {"type":"status","wiimote":1,"connected":false,"waiting":true}
 ```
 
----
+## Pair the Wii Remote
 
-# Pair the Wii Remote
+With the serial monitor open:
 
-Once the firmware is running:
+1. Press `1 + 2` on the Wii Remote.
+2. Wait for the connection status message.
+3. Press a few buttons to verify live events.
 
-1. Keep the serial monitor open
-2. Press **1 + 2** on the Wii Remote
-3. Wait for the ESP32 to connect
-
-When pairing succeeds, you should see:
+Expected output once connected:
 
 ```text
 {"type":"status","wiimote":1,"connected":true}
-```
-
-Then press buttons on the Wii Remote. You should see events such as:
-
-```text
 {"type":"btn","wiimote":1,"btn":"A","down":true}
 {"type":"btn","wiimote":1,"btn":"A","down":false}
-{"type":"btn","wiimote":1,"btn":"PLUS","down":true}
-{"type":"btn","wiimote":1,"btn":"PLUS","down":false}
 ```
 
----
+You may also see heartbeat and battery-related messages while connected.
 
-# Heartbeat Messages
+## Button Names
 
-The firmware emits periodic heartbeat messages to confirm it is still alive.
-
-Example:
+The firmware currently emits these button identifiers:
 
 ```text
-{"type":"heartbeat","device":"esp32","wiimote":1,"connected":true}
+A
+B
+ONE
+TWO
+PLUS
+MINUS
+HOME
+UP
+DOWN
+LEFT
+RIGHT
 ```
 
-These are used by the Home Assistant bridge for health monitoring.
+## Common Problems
 
----
+### `Library 'ESP32Wiimote@latest' not found`
 
-# Common Problems
-
-## `Library 'ESP32Wiimote@latest' not found`
-
-Cause:
-
-* library is not available in the normal Arduino library index
-
-Fix:
-
-* install from GitHub instead
+Use the GitHub install form:
 
 ```bash
 arduino-cli lib install --git-url https://github.com/andremmfaria/ESP32Wiimote
 ```
 
----
+### `Permission denied` on the serial device
 
-## `Permission denied: '/dev/ttyUSB0'`
+Either use `sudo` temporarily for validation or add your user to the appropriate device group for your distribution.
 
-Cause:
+### Upload hangs or fails
 
-* current user cannot access the serial device
+Check:
 
-Fix:
+1. The serial port is correct.
+2. The USB cable carries data, not power only.
+3. Another process is not holding the port open.
+4. Your board does not require manual bootloader entry.
 
-* run the serial monitor with `sudo`
-* or add your user to the appropriate serial device group
+### No JSON output after flashing
 
-Example:
+Check:
 
-```bash
-sudo python3 -m serial.tools.miniterm /dev/ttyUSB0 115200
-```
+1. The monitor is using `115200` baud.
+2. The firmware actually uploaded to the correct board.
+3. The board supports Bluetooth Classic.
 
----
+## Next Step
 
-## Upload fails
-
-Possible fixes:
-
-* confirm the correct serial port
-* unplug and reconnect the ESP32
-* hold the **BOOT** button during upload
-* make sure no serial monitor is already using the port
-
----
-
-# Next Step
-
-Once the firmware is working and serial JSON output is confirmed, continue with the Home Assistant add-on setup.
+Once the serial stream looks correct, continue with the add-on setup in `docs/ha-addon-setup.md`.

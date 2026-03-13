@@ -1,265 +1,275 @@
 # System Architecture
 
-This project converts a Nintendo Wii Remote into a Home Assistant controller using an ESP32 and a USB serial bridge.
+This project turns a Nintendo Wii Remote into a Home Assistant input device by splitting the problem into two separate runtime environments:
 
-The system consists of three main components.
+1. ESP32 firmware handles Bluetooth Classic communication with the controller.
+2. A Home Assistant add-on handles serial input and MQTT publication.
 
----
+That separation keeps Bluetooth and hardware handling out of Home Assistant itself and exposes a simple MQTT interface for automations.
 
-# Overview
+## End-to-End Flow
 
-```
+```text
 Wii Remote
-↓ Bluetooth (HID)
-ESP32 Firmware
-↓ USB Serial
-Home Assistant Add-on
-↓ MQTT
-Home Assistant Automations
+  -> Bluetooth Classic HID
+ESP32 firmware
+  -> line-delimited JSON over USB serial
+Home Assistant add-on
+  -> MQTT topics
+Home Assistant automations and other MQTT consumers
 ```
 
----
+## Main Components
 
-# Component Responsibilities
+### Wii Remote
 
-## Wii Remote
+The Wii Remote is the user input device.
 
-The Wii Remote acts as the input device.
-
-Capabilities:
+Hardware capabilities include:
 
 - digital buttons
 - accelerometer
-- IR tracking
+- IR camera
 - rumble motor
 - LEDs
 
-Currently used features:
+Current project usage focuses on button input. The rest of the hardware capabilities are not yet fully exposed through the bridge.
 
-```
-button input
-```
+### ESP32 Firmware
 
-Future firmware versions may add motion support.
+The ESP32 acts as the Bluetooth host for the Wii Remote and as the serial producer for the rest of the system.
 
----
+Its current responsibilities are:
 
-# ESP32 Firmware
+- initialize the Bluetooth library
+- prompt the user to pair with `1 + 2`
+- maintain controller connection state
+- emit line-delimited JSON messages over USB serial
+- emit button press and release transitions
+- emit periodic heartbeat messages
+- emit battery updates when they change
 
-The ESP32 acts as a Bluetooth host and translates Wii Remote events into JSON messages.
+Important implementation details:
 
-Responsibilities:
+- The firmware runs at `115200` baud.
+- It configures `ESP32Wiimote` library logging at warning level.
+- It captures the first button baseline after connection to avoid false button transitions.
+- It emits heartbeat messages every 10 seconds.
+- It requests battery updates every 60 seconds while connected.
+- It emits periodic waiting messages every 5 seconds while not connected.
 
-- connect to the Wii Remote
-- read button states
-- detect button state changes
-- emit JSON messages over serial
-- provide heartbeat messages
+### USB Serial Link
 
-The ESP32 does **not** connect to WiFi.
+The USB cable between the ESP32 and the Home Assistant host is the transport boundary between firmware and add-on.
 
-Communication with Home Assistant is done entirely over USB serial.
+On the host, this usually appears as a device such as:
 
-Advantages:
+- `/dev/ttyUSB0`
+- `/dev/ttyUSB1`
+- `/dev/ttyACM0`
 
-- simple
-- reliable
-- avoids WiFi configuration
-- avoids Bluetooth complexity inside Home Assistant
+The add-on does not speak Bluetooth directly. It only reads serial lines from this device.
 
----
+### Home Assistant Add-on
 
-# USB Serial Bridge
+The add-on is a Python application packaged as a Home Assistant add-on container.
 
-The ESP32 connects to the Home Assistant host via USB.
+Its responsibilities are:
 
-This provides:
+- read add-on options from Home Assistant
+- configure runtime logging
+- connect to MQTT
+- open the configured serial device
+- decode incoming serial lines
+- parse JSON objects
+- convert supported message types into MQTT topics
+- recover from transient serial failures
 
-```
-ESP32 → /dev/ttyUSB*
-```
+The add-on currently handles these serial message types:
 
-The Home Assistant add-on reads the serial stream and parses JSON messages.
+- `btn`
+- `status` with `connected`
+- `heartbeat`
 
----
+It currently ignores other emitted firmware message fields such as:
 
-# Home Assistant Add-on
+- `status` with `ready`
+- `status` with `waiting`
+- `status` with pairing notes
+- `battery`
 
-The add-on performs protocol translation.
+### MQTT Layer
 
-Responsibilities:
+MQTT is the stable integration surface for Home Assistant and other systems.
 
-- read serial messages
-- parse JSON events
-- publish MQTT topics
+Published topics currently include:
 
-Example translation:
+- `wiimote/1/button/A`
+- `wiimote/1/button/B`
+- `wiimote/1/button/PLUS`
+- `wiimote/1/status/connected`
+- `wiimote/1/status/heartbeat`
 
-Serial input:
+This makes the project usable not only from Home Assistant, but also from:
 
-```
+- Node-RED
+- openHAB
+- custom scripts
+- MQTT inspection tools
+
+### Home Assistant
+
+Home Assistant consumes the MQTT topics with automations, scripts, dashboards, or external integrations.
+
+Typical usage patterns are:
+
+- button press triggers for lights and scenes
+- connection-state notifications
+- heartbeat monitoring for device health
+
+## Protocol Boundary
+
+The serial protocol is intentionally simple and line-oriented.
+
+Example button message from the firmware:
+
+```json
 {"type":"btn","wiimote":1,"btn":"A","down":true}
 ```
 
-MQTT output:
+Current MQTT translation by the add-on:
 
-```
+```text
 topic: wiimote/1/button/A
 payload: ON
 ```
 
----
+Example connection message from the firmware:
 
-# MQTT
-
-MQTT provides the messaging layer between the bridge and Home Assistant.
-
-Example topics:
-
-```
-wiimote/1/button/A
-wiimote/1/button/B
-wiimote/1/button/PLUS
+```json
+{"type":"status","wiimote":1,"connected":true}
 ```
 
-Payloads:
+Current MQTT translation by the add-on:
 
-```
-ON
-OFF
-```
-
-This makes the project compatible with many systems:
-
-- Home Assistant
-- Node-RED
-- openHAB
-- custom scripts
-
----
-
-# Home Assistant
-
-Home Assistant uses MQTT triggers to create automations.
-
-Example automation:
-
-```
-trigger:
-
-* platform: mqtt
-  topic: wiimote/1/button/A
-  payload: "ON"
+```text
+topic: wiimote/1/status/connected
+payload: true
 ```
 
-Actions can control:
+Example heartbeat message from the firmware:
 
-- lights
-- scenes
-- media players
-- scripts
+```json
+{"type":"heartbeat","device":"esp32","wiimote":1,"connected":true,"battery":87}
+```
 
----
+Current MQTT translation by the add-on:
 
-# Why This Architecture
+```text
+topic: wiimote/1/status/heartbeat
+payload: {"type":"heartbeat","device":"esp32","wiimote":1,"connected":true,"battery":87}
+```
 
-The design intentionally avoids several common pitfalls.
+## Why This Design
 
-## Why not connect the Wiimote directly to Home Assistant?
+### Why not connect the Wii Remote directly to Home Assistant?
 
-Home Assistant does not support Wii Remote HID input devices.
+Home Assistant does not provide native Wii Remote support, and Bluetooth HID device handling inside HAOS is a poor fit for a custom integration path like this.
 
-Bluetooth stacks for HID devices inside HAOS are also difficult to manage.
-
----
-
-## Why use ESP32?
+### Why use ESP32?
 
 ESP32 provides:
 
-- inexpensive hardware
-- reliable Bluetooth Classic support
-- easy firmware development
-- simple USB serial interface
+- inexpensive and widely available hardware
+- Bluetooth Classic support
+- straightforward firmware development
+- a stable USB serial interface to the Home Assistant host
 
----
+### Why use serial between ESP32 and Home Assistant?
 
-## Why use MQTT?
+Serial avoids putting WiFi credentials, network stacks, and broker clients into the firmware layer. It also makes the device easy to inspect with a serial monitor during development.
 
-MQTT allows the system to be reused outside Home Assistant.
+### Why use MQTT as the add-on output?
 
-Other consumers can subscribe to the same topics.
+MQTT is a stable, automation-friendly interface that integrates well with Home Assistant and remains usable outside Home Assistant.
 
----
+## Failure and Recovery Model
 
-# Failure Handling
+The current architecture tolerates several common failure modes.
 
-The architecture is resilient to failures.
+### ESP32 Boot or Reset
 
-## ESP32 reset
+After startup, the firmware emits:
 
-The firmware emits:
-
-```
+```json
 {"type":"status","device":"esp32","ready":true}
 ```
 
-## Wiimote disconnect
+The add-on will continue reading when the serial stream resumes.
 
-Connection status changes:
+### Wii Remote Not Yet Paired
 
+The firmware emits prompt and waiting-style status messages such as:
+
+```json
+{"type":"status","wiimote":1,"connected":false,"note":"press_1_and_2"}
+{"type":"status","wiimote":1,"connected":false,"waiting":true}
 ```
+
+These are visible in serial logs but are not currently mapped to MQTT topics.
+
+### Wii Remote Disconnect
+
+The firmware emits:
+
+```json
 {"type":"status","wiimote":1,"connected":false}
 ```
 
-## Serial interruption
+The add-on converts this into MQTT connection state.
 
-The add-on automatically reconnects to the serial device.
+### Serial Open Failure
 
----
+If the add-on cannot open the configured serial device, it logs an error and retries after 5 seconds.
 
-# Future Architecture Improvements
+### Active Serial Failure
 
-Planned improvements include:
+If the serial device disconnects while the add-on is running, the add-on closes the handle, resets its serial state, and retries after 2 seconds.
 
-## Motion Control
+### Unexpected Processing Error
 
-Expose accelerometer data for gesture-based automations.
+If a non-serial exception occurs while processing a line, the add-on logs the exception and continues after 1 second.
 
-Example:
+## Current Constraints
 
-```
-shake → toggle lights
-tilt → dim lights
-```
+The current implementation intentionally stays narrow.
 
----
+Today the full system is best described as:
 
-## Rumble Feedback
+- one controller-focused bridge
+- button-event publishing
+- connection-state publishing
+- heartbeat forwarding
+- battery emitted by firmware but not yet published by the add-on
 
-Allow Home Assistant to send commands back to the ESP32 to activate the Wii Remote rumble motor.
+Not yet implemented end to end:
 
----
+- accelerometer MQTT topics
+- battery MQTT topics
+- commands from Home Assistant back to firmware
+- rumble control
+- LED control
+- explicit multi-controller routing
 
-## LED State
+## Planned Evolution
 
-Use the Wii Remote LEDs to indicate Home Assistant states.
+The current boundaries leave room for future expansion.
 
-Examples:
+Likely next protocol and architecture improvements include:
 
-- armed alarm
-- active scene
-- notification indicator
-
----
-
-## Multiple Controllers
-
-Support for multiple Wii Remotes.
-
-Example MQTT topics:
-
-```
-wiimote/1/button/A
-wiimote/2/button/A
-```
+- battery topic publishing in the add-on
+- motion and accelerometer events
+- bidirectional command topics
+- rumble support
+- LED state control
+- support for more than one connected Wii Remote
