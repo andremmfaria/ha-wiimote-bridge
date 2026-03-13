@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: Préfixe de sujet MQTT
     description: Préfixe utilisé pour tous les sujets MQTT publiés.
+  log_level:
+    name: Niveau de journalisation
+    description: Contrôle le niveau de détail que l'application écrit dans le journal du module complémentaire.

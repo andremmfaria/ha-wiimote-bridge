@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: Prefix MQTT tém
     description: Prefix používaný pre všetky publikované MQTT témy.
+  log_level:
+    name: Úroveň protokolovania
+    description: Určuje, koľko podrobností aplikácia zapisuje do protokolu doplnku.

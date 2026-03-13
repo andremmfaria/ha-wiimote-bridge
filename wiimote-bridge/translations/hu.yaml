@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: MQTT témakör előtag
     description: Az összes közzétett MQTT témakörhöz használt előtag.
+  log_level:
+    name: Naplózási szint
+    description: Szabályozza, hogy az alkalmazás mennyi részletet írjon a bővítmény naplójába.

@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: MQTT-Themenpräfix
     description: Präfix für alle veröffentlichten MQTT-Themen.
+  log_level:
+    name: Protokollstufe
+    description: Steuert, wie viele Details die Anwendung in das Add-on-Protokoll schreibt.

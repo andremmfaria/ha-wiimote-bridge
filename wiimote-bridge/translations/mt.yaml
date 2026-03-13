@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: Prefiss tas-suġġetti MQTT
     description: Prefiss użat għas-suġġetti MQTT kollha ppubblikati.
+  log_level:
+    name: Livell tal-log
+    description: Jikkontrolla kemm dettalji l-applikazzjoni tikteb fil-log tal-add-on.

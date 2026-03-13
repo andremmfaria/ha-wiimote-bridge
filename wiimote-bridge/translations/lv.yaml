@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: MQTT tēmu prefikss
     description: Prefikss, kas tiek izmantots visām publicētajām MQTT tēmām.
+  log_level:
+    name: Žurnāla līmenis
+    description: Nosaka, cik detalizētu informāciju lietotne raksta papildinājuma žurnālā.

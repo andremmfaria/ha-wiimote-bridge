@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: Prefijo de tema MQTT
     description: Prefijo usado para todos los temas MQTT publicados.
+  log_level:
+    name: Nivel de registro
+    description: Controla cuántos detalles escribe la aplicación en el registro del complemento.

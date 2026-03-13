@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: Prefix topic MQTT
     description: Prefix folosit pentru toate topicurile MQTT publicate.
+  log_level:
+    name: Nivel de jurnalizare
+    description: Controlează cât de multe detalii scrie aplicația în jurnalul suplimentului.

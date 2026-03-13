@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: MQTT-emnepræfiks
     description: Præfiks brugt til alle publicerede MQTT-emner.
+  log_level:
+    name: Logniveau
+    description: Styrer, hvor mange detaljer programmet skriver til add-on-loggen.

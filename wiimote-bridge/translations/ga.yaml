@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: Réimír topaice MQTT
     description: Réimír a úsáidtear do gach topaic MQTT a fhoilsítear.
+  log_level:
+    name: Leibhéal logála
+    description: Rialaíonn sé cé mhéad mionsonraí a scríobhann an feidhmchlár i loga an bhreiseáin.

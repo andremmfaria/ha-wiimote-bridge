@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: MQTT temų priešdėlis
     description: Priešdėlis, naudojamas visoms skelbiamoms MQTT temoms.
+  log_level:
+    name: Žurnalo lygis
+    description: Nurodo, kiek išsamios informacijos programa rašo į papildinio žurnalą.

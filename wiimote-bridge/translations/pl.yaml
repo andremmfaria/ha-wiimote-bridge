@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: Prefiks tematów MQTT
     description: Prefiks używany dla wszystkich publikowanych tematów MQTT.
+  log_level:
+    name: Poziom logowania
+    description: Określa, ile szczegółów aplikacja zapisuje w dzienniku dodatku.

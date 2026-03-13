@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: MQTT-aiheiden etuliite
     description: Etuliite, jota käytetään kaikissa julkaistuissa MQTT-aiheissa.
+  log_level:
+    name: Lokitaso
+    description: Määrittää, kuinka paljon yksityiskohtia sovellus kirjoittaa lisäosan lokiin.

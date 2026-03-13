@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: MQTT teema prefiks
     description: Prefiks, mida kasutatakse kõigi avaldatud MQTT teemade jaoks.
+  log_level:
+    name: Logitase
+    description: Määrab, kui palju üksikasju rakendus lisandmooduli logisse kirjutab.

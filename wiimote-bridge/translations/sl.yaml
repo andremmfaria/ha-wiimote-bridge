@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: Predpona MQTT tem
     description: Predpona, uporabljena za vse objavljene MQTT teme.
+  log_level:
+    name: Raven beleženja
+    description: Nadzoruje, koliko podrobnosti aplikacija zapiše v dnevnik dodatka.

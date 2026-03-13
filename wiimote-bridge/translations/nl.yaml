@@ -20,3 +20,6 @@ configuration:
   topic_prefix:
     name: MQTT-topicprefix
     description: Prefix dat wordt gebruikt voor alle gepubliceerde MQTT-topics.
+  log_level:
+    name: Logniveau
+    description: Bepaalt hoeveel details de applicatie naar het add-onlog schrijft.
