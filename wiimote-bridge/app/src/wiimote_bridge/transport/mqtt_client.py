@@ -28,6 +28,19 @@ def mqtt_publish(client: mqtt.Client, topic: str, payload: str, retain: bool = F
     LOGGER.info("MQTT %s -> %s", topic, payload)
 
 
+def publish_event_message(client: mqtt.Client, topic_prefix: str, payload_obj: dict[str, Any]) -> None:
+    msg_type = str(payload_obj.get("type", "unknown"))
+    payload = json.dumps(payload_obj, separators=(",", ":"))
+
+    if "wiimote" in payload_obj:
+        topic = f"{topic_prefix}/{int(payload_obj['wiimote'])}/events/{msg_type}"
+    else:
+        device = str(payload_obj.get("device", "bridge"))
+        topic = f"{topic_prefix}/device/{device}/events/{msg_type}"
+
+    mqtt_publish(client, topic, payload, retain=False)
+
+
 def publish_button(client: mqtt.Client, topic_prefix: str, wiimote_id: int, button: str, down: bool) -> None:
     topic = f"{topic_prefix}/{wiimote_id}/button/{button}"
     payload = "ON" if down else "OFF"
@@ -38,6 +51,11 @@ def publish_connected(client: mqtt.Client, topic_prefix: str, wiimote_id: int, c
     topic = f"{topic_prefix}/{wiimote_id}/status/connected"
     payload = "true" if connected else "false"
     mqtt_publish(client, topic, payload, retain=True)
+
+
+def publish_battery(client: mqtt.Client, topic_prefix: str, wiimote_id: int, level: int) -> None:
+    topic = f"{topic_prefix}/{wiimote_id}/status/battery"
+    mqtt_publish(client, topic, str(level), retain=True)
 
 
 def publish_heartbeat(client: mqtt.Client, topic_prefix: str, wiimote_id: int, payload_obj: dict[str, Any]) -> None:

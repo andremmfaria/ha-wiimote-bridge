@@ -276,6 +276,28 @@ Payloads:
 
 This topic is published with `retain=true`, which allows subscribers to immediately see the latest known connection state.
 
+### Battery Status
+
+Battery updates are published to:
+
+```text
+<topic_prefix>/<wiimote_id>/status/battery
+```
+
+Example:
+
+```text
+wiimote/1/status/battery
+```
+
+Payload:
+
+```text
+87
+```
+
+This topic is published with `retain=true` so the latest known battery value remains available to subscribers.
+
 ### Heartbeat Messages
 
 Heartbeat messages are published to:
@@ -291,6 +313,28 @@ Example payload:
 ```
 
 This topic is published with `retain=false`.
+
+### Event Topics
+
+Every incoming firmware message is also forwarded as event JSON so nothing is lost even when the bridge does not expose a dedicated convenience topic shape.
+
+Topics:
+
+```text
+<topic_prefix>/<wiimote_id>/events/<type>
+<topic_prefix>/device/<device>/events/<type>
+```
+
+Examples:
+
+```text
+wiimote/1/events/status
+wiimote/1/events/battery
+wiimote/1/events/heartbeat
+wiimote/device/esp32/events/status
+```
+
+These event topics carry the original JSON payload from the firmware.
 
 ## Serial Protocol Examples
 
@@ -311,8 +355,9 @@ The add-on currently maps them like this:
 | `btn` | Publishes `ON` or `OFF` to a button topic |
 | `status` with `connected` | Publishes `true` or `false` to the connection topic |
 | `heartbeat` | Publishes the full JSON object to the heartbeat topic |
+| any message | Publishes the original JSON object to an events topic |
 
-The add-on does not currently publish a dedicated MQTT topic for firmware `ready` messages.
+Firmware `ready`, `waiting`, and `note` messages are available through the events topics.
 
 ## Example Home Assistant Automations
 
@@ -488,7 +533,8 @@ Check that:
 
 ## Operational Notes
 
-- The application currently focuses on button events, connection state, and heartbeat forwarding.
+- The application currently provides dedicated MQTT topics for button events, connection state, battery level, and heartbeat messages.
+- Every firmware message is also forwarded to an events JSON MQTT topic.
 - Motion, rumble, LED control, and inbound command topics are not yet implemented in the add-on.
 - The firmware and add-on currently assume a simple controller identifier model, with topics typically published under `wiimote/1/...`.
 

@@ -28,6 +28,51 @@ def test_publish_connected_retained(monkeypatch):
     assert called["data"] == ("wiimote/1/status/connected", "false", True)
 
 
+def test_publish_battery_retained(monkeypatch):
+    called = {}
+
+    def fake_publish(client, topic, payload, retain=False):
+        called["data"] = (topic, payload, retain)
+
+    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+
+    mqtt_client.publish_battery(object(), "wiimote", 2, 87)
+
+    assert called["data"] == ("wiimote/2/status/battery", "87", True)
+
+
+def test_publish_event_message_for_wiimote(monkeypatch):
+    called = {}
+
+    def fake_publish(client, topic, payload, retain=False):
+        called["data"] = (topic, payload, retain)
+
+    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+
+    mqtt_client.publish_event_message(object(), "wiimote", {"type": "status", "wiimote": 1, "waiting": True})
+
+    assert called["data"] == (
+        "wiimote/1/events/status",
+        '{"type":"status","wiimote":1,"waiting":true}',
+        False,
+    )
+def test_publish_event_message_for_device(monkeypatch):
+    called = {}
+
+    def fake_publish(client, topic, payload, retain=False):
+        called["data"] = (topic, payload, retain)
+
+    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+
+    mqtt_client.publish_event_message(object(), "wiimote", {"type": "status", "device": "esp32", "ready": True})
+
+    assert called["data"] == (
+        "wiimote/device/esp32/events/status",
+        '{"type":"status","device":"esp32","ready":true}',
+        False,
+    )
+
+
 def test_connect_mqtt_sets_auth_and_starts_loop(monkeypatch):
     calls = {}
 

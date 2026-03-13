@@ -2,7 +2,7 @@
 
 This document defines the JSON protocol spoken by the ESP32 firmware over USB serial.
 
-The Home Assistant add-on consumes this protocol line by line and currently forwards a subset of the messages to MQTT.
+The Home Assistant add-on consumes this protocol line by line and forwards every message to MQTT.
 
 ## Transport Rules
 
@@ -180,19 +180,20 @@ Fields:
 
 ## Add-on Mapping
 
-The current add-on behavior is intentionally narrower than the firmware protocol.
+The current add-on publishes both convenience topics and passthrough events topics.
 
 Current mapping:
 
 | Serial message | MQTT result |
 | --- | --- |
+| any message with `wiimote` | Published as event JSON to `<prefix>/<id>/events/<type>` |
+| any message with `device` but no `wiimote` | Published as event JSON to `<prefix>/device/<device>/events/<type>` |
 | `btn` | Published to `<prefix>/<id>/button/<button>` with `ON` or `OFF` |
 | `status` with `connected` | Published to `<prefix>/<id>/status/connected` with `true` or `false` |
-| `heartbeat` | Published to `<prefix>/<id>/status/heartbeat` as raw JSON |
-| `status` with `ready`, `waiting`, or `note` | Not currently published |
-| `battery` | Not currently published |
+| `heartbeat` | Published to `<prefix>/<id>/status/heartbeat` as JSON |
+| `battery` | Published to `<prefix>/<id>/status/battery` with the numeric level |
 
-This distinction matters when debugging. A message can be valid protocol output and still not result in an MQTT topic.
+This means every valid firmware message now reaches MQTT even if there is no dedicated high-level topic for it yet.
 
 ## Ordering and State Semantics
 

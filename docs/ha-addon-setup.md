@@ -204,16 +204,54 @@ This topic is retained.
 
 The payload is the original JSON heartbeat object from the firmware.
 
-## What the Add-on Currently Ignores
+### Battery Topic
 
-The firmware emits additional information that the add-on does not yet map to MQTT:
+```text
+<topic_prefix>/<wiimote_id>/status/battery
+```
+
+Example:
+
+```text
+wiimote/1/status/battery
+```
+
+Payload example:
+
+```text
+87
+```
+
+The battery topic is retained so new subscribers can immediately read the latest known value.
+
+### Firmware Event Topics
+
+Every firmware message is also forwarded as event JSON.
+
+Topic patterns:
+
+```text
+<topic_prefix>/<wiimote_id>/events/<type>
+<topic_prefix>/device/<device>/events/<type>
+```
+
+Examples:
+
+```text
+wiimote/1/events/status
+wiimote/1/events/battery
+wiimote/device/esp32/events/status
+```
+
+## What the Add-on Does Not Yet Expose as Dedicated Topics
+
+The firmware emits additional information that does not yet have a dedicated convenience topic, but it is still available through the events MQTT topics:
 
 - firmware `ready` status
 - pairing prompt notes
 - waiting messages
-- battery messages
 
-Those messages still appear in add-on serial logs at suitable log levels.
+Those messages also remain visible in add-on serial logs at suitable log levels.
 
 ## Example Automation
 
