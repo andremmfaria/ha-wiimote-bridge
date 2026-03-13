@@ -15,8 +15,11 @@ RUN apk add --no-cache \
     py3-pip \
     python3
 
-# Use uv with a frozen lockfile for reproducible dependency installs.
-RUN pip3 install --no-cache-dir uv==0.10.9
+# Install uv in an isolated virtual environment to avoid PEP 668 issues.
+RUN python3 -m venv /venv && \
+    /venv/bin/pip install --no-cache-dir uv==0.10.9
+
+ENV PATH="/venv/bin:${PATH}"
 
 COPY app /app
 RUN cd /app && uv sync --frozen --no-dev

@@ -57,13 +57,13 @@ ha-wiimote-bridge/
     ├── Dockerfile
     ├── run.sh
     └── app/
-    ├── pyproject.toml
-      ├── uv.lock
-    └── src/
-      └── wiimote_bridge/
-        ├── core/
-        ├── transport/
-        └── utils/
+        ├── pyproject.toml
+        ├── uv.lock
+        └── src/
+            └── wiimote_bridge/
+                ├── core/
+                ├── transport/
+                └── utils/
 ```
 
 ## Quick Start
