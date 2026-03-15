@@ -1,5 +1,5 @@
 name: "WiiMote Bridge"
-version: "0.2.0"
+version: "0.3.0"
 slug: "wiimote_bridge"
 description: |
   Bridge a Nintendo Wii Remote to Home Assistant using an ESP32 over USB serial.

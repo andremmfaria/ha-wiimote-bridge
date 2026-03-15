@@ -3,17 +3,17 @@
 #include "../include/messages.h"
 
 const ButtonMap BUTTONS[] = {
-    {BUTTON_A, "A"},
-    {BUTTON_B, "B"},
-    {BUTTON_ONE, "ONE"},
-    {BUTTON_TWO, "TWO"},
-    {BUTTON_PLUS, "PLUS"},
-    {BUTTON_MINUS, "MINUS"},
-    {BUTTON_HOME, "HOME"},
-    {BUTTON_UP, "UP"},
-    {BUTTON_DOWN, "DOWN"},
-    {BUTTON_LEFT, "LEFT"},
-    {BUTTON_RIGHT, "RIGHT"},
+  {ButtonA, "A"},
+  {ButtonB, "B"},
+  {ButtonOne, "ONE"},
+  {ButtonTwo, "TWO"},
+  {ButtonPlus, "PLUS"},
+  {ButtonMinus, "MINUS"},
+  {ButtonHome, "HOME"},
+  {ButtonUp, "UP"},
+  {ButtonDown, "DOWN"},
+  {ButtonLeft, "LEFT"},
+  {ButtonRight, "RIGHT"},
 };
 
 const int BUTTONS_COUNT = sizeof(BUTTONS) / sizeof(BUTTONS[0]);

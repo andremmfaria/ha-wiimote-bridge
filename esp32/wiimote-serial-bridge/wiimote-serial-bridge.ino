@@ -6,7 +6,7 @@
 
 // Global variable definitions
 ESP32Wiimote wiimote;
-ButtonState lastButtons = NO_BUTTON;
+ButtonState lastButtons = NoButton;
 bool connected = false;
 bool baselineCaptured = false;
 uint8_t lastBatteryLevel = 0;
@@ -26,7 +26,7 @@ void setup() {
   emitPrompt();
 
   // Keep the stream button-focused for now.
-  wiimote.addFilter(ACTION_IGNORE, FILTER_ACCEL | FILTER_NUNCHUK_STICK);
+  wiimote.addFilter(FilterAction::Ignore, FilterAccel | FilterNunchukStick);
   wiimote.init();
 
   unsigned long now = millis();
