@@ -6,7 +6,7 @@
 
 // Global variable definitions
 ESP32Wiimote wiimote;
-ButtonState lastButtons = NoButton;
+ButtonState lastButtons = kNoButton;
 bool connected = false;
 bool baselineCaptured = false;
 uint8_t lastBatteryLevel = 0;
@@ -20,14 +20,19 @@ void setup() {
   delay(1000);
 
   // Keep library logs to errors and warnings only.
-  ESP32Wiimote::setLogLevel(WIIMOTE_LOG_WARNING);
+  ESP32Wiimote::setLogLevel(kWiimoteLogWarning);
+  if (!wiimote.init()) {
+    Serial.println("{\"type\":\"status\",\"device\":\"esp32\",\"ready\":false,\"error\":\"wiimote_init_failed\"}");
+    while (true) {
+      delay(1000);
+    }
+  }
+
+  // Keep the stream button-focused for now.
+  wiimote.addFilter(FilterAction::Ignore, kFilterAccel | kFilterNunchukStick);
 
   emitReady();
   emitPrompt();
-
-  // Keep the stream button-focused for now.
-  wiimote.addFilter(FilterAction::Ignore, FilterAccel | FilterNunchukStick);
-  wiimote.init();
 
   unsigned long now = millis();
   lastWaitingMsgMs = now;
@@ -40,7 +45,7 @@ void loop() {
   unsigned long now = millis();
 
   // Check connection status using library method
-  bool isConnected = wiimote.isConnected();
+  bool isConnected = ESP32Wiimote::isConnected();
   
   // Detect connection state changes
   if (isConnected && !connected) {
@@ -49,7 +54,7 @@ void loop() {
     baselineCaptured = false;
     emitConnected(true);
     // Request initial battery level
-    wiimote.requestBatteryUpdate();
+    ESP32Wiimote::requestBatteryUpdate();
     lastBatteryRequestMs = now;
   } else if (!isConnected && connected) {
     // Just disconnected
@@ -59,9 +64,8 @@ void loop() {
     emitConnected(false);
   }
 
-  // Process available data
-  int avail = wiimote.available();
-  if (avail > 0) {
+  // Process every pending update so state does not lag behind.
+  while (wiimote.available() > 0) {
     ButtonState buttons = wiimote.getButtonState();
 
     // On the first packet after connection, capture the current state
@@ -74,7 +78,7 @@ void loop() {
     }
     
     // Check for battery level changes
-    uint8_t currentBattery = wiimote.getBatteryLevel();
+    uint8_t currentBattery = ESP32Wiimote::getBatteryLevel();
     if (currentBattery != lastBatteryLevel) {
       lastBatteryLevel = currentBattery;
       emitBattery(currentBattery);
@@ -88,7 +92,7 @@ void loop() {
 
   // Request battery update periodically when connected
   if (connected && (now - lastBatteryRequestMs >= BATTERY_REQUEST_INTERVAL_MS)) {
-    wiimote.requestBatteryUpdate();
+    ESP32Wiimote::requestBatteryUpdate();
     lastBatteryRequestMs = now;
   }
 

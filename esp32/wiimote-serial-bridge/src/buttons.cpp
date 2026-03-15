@@ -3,17 +3,17 @@
 #include "../include/messages.h"
 
 const ButtonMap BUTTONS[] = {
-  {ButtonA, "A"},
-  {ButtonB, "B"},
-  {ButtonOne, "ONE"},
-  {ButtonTwo, "TWO"},
-  {ButtonPlus, "PLUS"},
-  {ButtonMinus, "MINUS"},
-  {ButtonHome, "HOME"},
-  {ButtonUp, "UP"},
-  {ButtonDown, "DOWN"},
-  {ButtonLeft, "LEFT"},
-  {ButtonRight, "RIGHT"},
+  {static_cast<uint32_t>(kButtonA), "A"},
+  {static_cast<uint32_t>(kButtonB), "B"},
+  {static_cast<uint32_t>(kButtonOne), "ONE"},
+  {static_cast<uint32_t>(kButtonTwo), "TWO"},
+  {static_cast<uint32_t>(kButtonPlus), "PLUS"},
+  {static_cast<uint32_t>(kButtonMinus), "MINUS"},
+  {static_cast<uint32_t>(kButtonHome), "HOME"},
+  {static_cast<uint32_t>(kButtonUp), "UP"},
+  {static_cast<uint32_t>(kButtonDown), "DOWN"},
+  {static_cast<uint32_t>(kButtonLeft), "LEFT"},
+  {static_cast<uint32_t>(kButtonRight), "RIGHT"},
 };
 
 const int BUTTONS_COUNT = sizeof(BUTTONS) / sizeof(BUTTONS[0]);
