@@ -320,6 +320,8 @@ Verify:
 2. `mqtt_port` is correct.
 3. Credentials are valid if authentication is enabled.
 
+During temporary broker outages or reconnects, the bridge skips MQTT publishes and logs a warning at most once every 15 seconds until connectivity returns.
+
 ## Stopping the Add-on
 
 Stopping the add-on disconnects the MQTT client and stops topic publication. The ESP32 firmware continues running until power or USB is removed.

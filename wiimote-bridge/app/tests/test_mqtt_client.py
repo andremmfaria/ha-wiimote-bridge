@@ -79,6 +79,8 @@ def test_connect_mqtt_sets_auth_and_starts_loop(monkeypatch):
     class FakeClient:
         def __init__(self, client_id, clean_session):
             calls["init"] = (client_id, clean_session)
+            self.on_connect = None
+            self.on_disconnect = None
 
         def username_pw_set(self, username, password):
             calls["auth"] = (username, password)
@@ -108,16 +110,23 @@ def test_connect_mqtt_sets_auth_and_starts_loop(monkeypatch):
     assert calls["auth"] == ("u", "p")
     assert calls["connect"] == ("broker.local", 2883, 60)
     assert calls["loop_start"] is True
+    assert callable(client.on_connect)
+    assert callable(client.on_disconnect)
 
 
 def test_mqtt_publish_waits_for_publish(monkeypatch):
     calls = {}
 
     class FakeResult:
+        rc = mqtt_client.mqtt.MQTT_ERR_SUCCESS
+
         def wait_for_publish(self):
             calls["wait"] = True
 
     class FakeClient:
+        def is_connected(self):
+            return True
+
         def publish(self, topic, payload, retain=False):
             calls["publish"] = (topic, payload, retain)
             return FakeResult()
@@ -126,3 +135,77 @@ def test_mqtt_publish_waits_for_publish(monkeypatch):
 
     assert calls["publish"] == ("topic/x", "ON", True)
     assert calls["wait"] is True
+
+
+def test_mqtt_publish_skips_when_client_is_disconnected():
+    calls = {}
+
+    class FakeClient:
+        def is_connected(self):
+            return False
+
+        def publish(self, topic, payload, retain=False):
+            calls["publish"] = (topic, payload, retain)
+            raise AssertionError("publish should not be called while disconnected")
+
+    published = mqtt_client.mqtt_publish(FakeClient(), "topic/x", "ON", retain=True)
+
+    assert published is False
+    assert "publish" not in calls
+
+
+def test_mqtt_publish_skips_runtime_publish_failure():
+    calls = {}
+
+    class FakeResult:
+        rc = mqtt_client.mqtt.MQTT_ERR_SUCCESS
+
+        def wait_for_publish(self):
+            calls["wait"] = True
+            raise RuntimeError("Message publish failed: The client is not currently connected.")
+
+    class FakeClient:
+        def is_connected(self):
+            return True
+
+        def publish(self, topic, payload, retain=False):
+            calls["publish"] = (topic, payload, retain)
+            return FakeResult()
+
+    published = mqtt_client.mqtt_publish(FakeClient(), "topic/x", "ON", retain=True)
+
+    assert published is False
+    assert calls["publish"] == ("topic/x", "ON", True)
+    assert calls["wait"] is True
+
+
+def test_mqtt_publish_warning_is_rate_limited(monkeypatch):
+    warnings = []
+
+    class FakeLogger:
+        def warning(self, message, *args):
+            if args:
+                warnings.append(message % args)
+                return
+            warnings.append(message)
+
+    ticks = iter([100.0, 105.0, 116.0])
+    monkeypatch.setattr(mqtt_client.time, "monotonic", lambda: next(ticks))
+    monkeypatch.setattr(mqtt_client, "LOGGER", FakeLogger())
+    monkeypatch.setattr(mqtt_client, "_last_publish_warning_at", None)
+
+    class FakeClient:
+        def is_connected(self):
+            return False
+
+        def publish(self, topic, payload, retain=False):
+            raise AssertionError("publish should not be called while disconnected")
+
+    mqtt_client.mqtt_publish(FakeClient(), "topic/1", "ON")
+    mqtt_client.mqtt_publish(FakeClient(), "topic/2", "ON")
+    mqtt_client.mqtt_publish(FakeClient(), "topic/3", "ON")
+
+    assert warnings == [
+        "Skipping MQTT publish while client is disconnected: topic/1",
+        "Skipping MQTT publish while client is disconnected: topic/3",
+    ]

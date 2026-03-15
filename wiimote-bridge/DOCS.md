@@ -471,6 +471,7 @@ The add-on contains basic recovery logic:
 - If the serial device cannot be opened, the app logs the error and retries after 5 seconds.
 - If an active serial session raises `serial.SerialException`, the device is closed, the connection is reset, and the app retries after 2 seconds.
 - If any other unexpected exception occurs while processing a message, the stack trace is logged and the loop continues after 1 second.
+- If MQTT is disconnected when publishing, the message is skipped and a warning is logged at most once every 15 seconds.
 - On container stop, the app closes the serial device, stops the MQTT client loop, and disconnects from the broker.
 
 This means temporary serial disconnects or ESP32 resets usually do not require a full add-on reinstall.
@@ -518,6 +519,15 @@ Verify:
 
 1. `mqtt_host` resolves from inside Home Assistant.
 2. `mqtt_port` is correct.
+3. Credentials are valid if authentication is enabled.
+
+During temporary MQTT outages or reconnects, warning lines like the following are expected:
+
+```text
+WARNING wiimote_bridge.transport.mqtt_client: Skipping MQTT publish while client is disconnected: ...
+```
+
+This warning is rate-limited to once every 15 seconds while disconnected.
 3. `mqtt_username` and `mqtt_password` are valid if authentication is required.
 4. The broker accepts connections from the add-on network.
 
