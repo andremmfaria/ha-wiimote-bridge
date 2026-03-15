@@ -77,8 +77,8 @@ def test_connect_mqtt_sets_auth_and_starts_loop(monkeypatch):
     calls = {}
 
     class FakeClient:
-        def __init__(self, client_id, clean_session):
-            calls["init"] = (client_id, clean_session)
+        def __init__(self, callback_api_version, client_id, clean_session):
+            calls["init"] = (callback_api_version, client_id, clean_session)
             self.on_connect = None
             self.on_disconnect = None
 
@@ -106,12 +106,46 @@ def test_connect_mqtt_sets_auth_and_starts_loop(monkeypatch):
     client = mqtt_client.connect_mqtt(settings)
 
     assert client is not None
-    assert calls["init"] == ("wiimote-serial-bridge", True)
+    assert calls["init"] == (
+        mqtt_client.mqtt.CallbackAPIVersion.VERSION2,
+        "wiimote-serial-bridge",
+        True,
+    )
     assert calls["auth"] == ("u", "p")
     assert calls["connect"] == ("broker.local", 2883, 60)
     assert calls["loop_start"] is True
     assert callable(client.on_connect)
     assert callable(client.on_disconnect)
+
+
+def test_connect_mqtt_on_disconnect_accepts_v2_signature(monkeypatch):
+    class FakeClient:
+        def __init__(self, callback_api_version, client_id, clean_session):
+            self.on_connect = None
+            self.on_disconnect = None
+
+        def connect(self, host, port, keepalive):
+            return None
+
+        def loop_start(self):
+            return None
+
+    monkeypatch.setattr(mqtt_client.mqtt, "Client", FakeClient)
+
+    settings = Settings(
+        serial_port="/dev/ttyUSB0",
+        serial_baud=115200,
+        mqtt_host="broker.local",
+        mqtt_port=1883,
+        mqtt_username="",
+        mqtt_password="",
+        topic_prefix="wiimote",
+    )
+
+    client = mqtt_client.connect_mqtt(settings)
+
+    # Paho v2 callback shape: (client, userdata, disconnect_flags, reason_code, properties)
+    client.on_disconnect(client, None, None, 1, None)
 
 
 def test_mqtt_publish_waits_for_publish(monkeypatch):

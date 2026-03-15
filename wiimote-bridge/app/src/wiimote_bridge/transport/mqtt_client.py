@@ -23,21 +23,42 @@ def _warn_publish_issue(message: str, *args: Any) -> None:
 
 
 def connect_mqtt(settings: Settings) -> mqtt.Client:
-    client = mqtt.Client(client_id="wiimote-serial-bridge", clean_session=True)
+    client = mqtt.Client(
+        callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
+        client_id="wiimote-serial-bridge",
+        clean_session=True,
+    )
+
+    def _reason_code_value(reason_code: Any) -> int:
+        if isinstance(reason_code, int):
+            return reason_code
+
+        value = getattr(reason_code, "value", None)
+        if isinstance(value, int):
+            return value
+
+        try:
+            return int(reason_code)
+        except (TypeError, ValueError):
+            return mqtt.MQTT_ERR_UNKNOWN
 
     def on_connect(_client, _userdata, _flags, reason_code, _properties=None) -> None:
-        if reason_code == 0:
+        reason_code_value = _reason_code_value(reason_code)
+
+        if reason_code_value == 0:
             LOGGER.info("Connected to MQTT broker at %s:%s", settings.mqtt_host, settings.mqtt_port)
             return
 
-        LOGGER.warning("MQTT connection failed: %s", mqtt.error_string(reason_code))
+        LOGGER.warning("MQTT connection failed: %s", mqtt.error_string(reason_code_value))
 
     def on_disconnect(_client, _userdata, _disconnect_flags, reason_code, _properties=None) -> None:
-        if reason_code == 0:
+        reason_code_value = _reason_code_value(reason_code)
+
+        if reason_code_value == 0:
             LOGGER.info("MQTT client disconnected")
             return
 
-        LOGGER.warning("MQTT client disconnected: %s", mqtt.error_string(reason_code))
+        LOGGER.warning("MQTT client disconnected: %s", mqtt.error_string(reason_code_value))
 
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect
