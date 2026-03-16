@@ -2,6 +2,9 @@ configuration:
   radios:
     name: Module radio
     description: Listă de module radio ESP32. Fiecare intrare trebuie să includă port, baud și controller_id.
+  discover_enabled:
+    name: MQTT Discovery
+    description: Activează sau dezactivează publicarea configurațiilor MQTT Discovery pentru Home Assistant.
   mqtt_host:
     name: Gazdă MQTT
     description: Numele gazdei brokerului MQTT care primește evenimentele Wii Remote.

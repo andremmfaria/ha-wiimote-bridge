@@ -1,5 +1,6 @@
 import json
 import time
+from collections.abc import Iterable
 from typing import Any
 
 import paho.mqtt.client as mqtt
@@ -11,6 +12,7 @@ from wiimote_bridge.utils.logging import get_logger
 LOGGER = get_logger(__name__)
 PUBLISH_WARNING_INTERVAL_SECONDS = 15.0
 _last_publish_warning_at: float | None = None
+WIIMOTE_BUTTONS = ("A", "B", "UP", "DOWN", "LEFT", "RIGHT", "PLUS", "MINUS", "HOME", "ONE", "TWO")
 
 
 def _warn_publish_issue(message: str, *args: Any) -> None:
@@ -141,3 +143,101 @@ def publish_heartbeat(client: mqtt.Client, topic_prefix: str, wiimote_id: int, p
     topic = f"{topic_prefix}/{wiimote_id}/status/heartbeat"
     payload = json.dumps(_normalize_wiimote_payload(payload_obj, wiimote_id), separators=(",", ":"))
     mqtt_publish(client, topic, payload, retain=False)
+
+
+def publish_discovery_configs(
+    client: mqtt.Client,
+    topic_prefix: str,
+    wiimote_ids: Iterable[int],
+    discovery_prefix: str = "homeassistant",
+) -> None:
+    for wiimote_id in wiimote_ids:
+        _publish_controller_discovery(client, topic_prefix, int(wiimote_id), discovery_prefix)
+
+
+def _publish_controller_discovery(
+    client: mqtt.Client,
+    topic_prefix: str,
+    wiimote_id: int,
+    discovery_prefix: str,
+) -> None:
+    device_id = f"wiimote_bridge_{wiimote_id}"
+    device_name = f"WiiMote {wiimote_id}"
+    object_prefix = f"wiimote_{wiimote_id}"
+    device = {
+        "identifiers": [device_id],
+        "name": device_name,
+        "manufacturer": "Nintendo",
+        "model": "Wii Remote",
+        "via_device": "wiimote_bridge",
+    }
+
+    connected_cfg = {
+        "name": "Connected",
+        "unique_id": f"{device_id}_connected",
+        "state_topic": f"{topic_prefix}/{wiimote_id}/status/connected",
+        "payload_on": "true",
+        "payload_off": "false",
+        "device_class": "connectivity",
+        "entity_category": "diagnostic",
+        "device": device,
+    }
+    _publish_discovery_entity(
+        client,
+        discovery_prefix,
+        "binary_sensor",
+        object_prefix,
+        "connected",
+        connected_cfg,
+    )
+
+    battery_cfg = {
+        "name": "Battery",
+        "unique_id": f"{device_id}_battery",
+        "state_topic": f"{topic_prefix}/{wiimote_id}/status/battery",
+        "unit_of_measurement": "%",
+        "device_class": "battery",
+        "state_class": "measurement",
+        "entity_category": "diagnostic",
+        "device": device,
+    }
+    _publish_discovery_entity(
+        client,
+        discovery_prefix,
+        "sensor",
+        object_prefix,
+        "battery",
+        battery_cfg,
+    )
+
+    for button in WIIMOTE_BUTTONS:
+        button_cfg = {
+            "name": button,
+            "unique_id": f"{device_id}_button_{button.lower()}",
+            "state_topic": f"{topic_prefix}/{wiimote_id}/button/{button}",
+            "payload_on": "ON",
+            "payload_off": "OFF",
+            "device_class": "power",
+            "device": device,
+        }
+        _publish_discovery_entity(
+            client,
+            discovery_prefix,
+            "binary_sensor",
+            object_prefix,
+            f"button_{button.lower()}",
+            button_cfg,
+        )
+
+
+def _publish_discovery_entity(
+    client: mqtt.Client,
+    discovery_prefix: str,
+    component: str,
+    object_prefix: str,
+    object_id: str,
+    config_payload: dict[str, Any],
+) -> None:
+    topic = f"{discovery_prefix}/{component}/{object_prefix}/{object_id}/config"
+    payload = json.dumps(config_payload, separators=(",", ":"))
+    mqtt_publish(client, topic, payload, retain=True)

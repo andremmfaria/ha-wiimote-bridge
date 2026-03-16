@@ -2,6 +2,9 @@ configuration:
   radios:
     name: Funkmodule
     description: Liste der ESP32-Funkmodule. Jeder Eintrag muss port, baud und controller_id enthalten.
+  discover_enabled:
+    name: MQTT-Discovery
+    description: Aktiviert oder deaktiviert das Veröffentlichen von MQTT-Discovery-Konfigurationen für Home Assistant.
   mqtt_host:
     name: MQTT-Host
     description: Hostname des MQTT-Brokers, der Wii-Remote-Ereignisse empfängt.

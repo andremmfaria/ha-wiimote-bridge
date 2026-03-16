@@ -6,7 +6,7 @@ from typing import Any
 import serial
 
 from wiimote_bridge.core.handlers import handle_message
-from wiimote_bridge.transport.mqtt_client import connect_mqtt
+from wiimote_bridge.transport.mqtt_client import connect_mqtt, publish_discovery_configs
 from wiimote_bridge.transport.serial_reader import open_serial
 from wiimote_bridge.utils.config import RadioConfig, load_settings
 from wiimote_bridge.utils.logging import configure_logging, get_logger
@@ -99,6 +99,7 @@ def run() -> int:
     LOGGER.info("MQTT broker: %s:%s", settings.mqtt_host, settings.mqtt_port)
     LOGGER.debug("MQTT username configured: %s", bool(settings.mqtt_username))
     LOGGER.debug("Topic prefix: %s", settings.topic_prefix)
+    LOGGER.debug("MQTT discovery enabled: %s", settings.discover_enabled)
 
     stop_event = threading.Event()
 
@@ -111,6 +112,14 @@ def run() -> int:
     signal.signal(signal.SIGINT, handle_signal)
 
     client = connect_mqtt(settings)
+    if settings.discover_enabled:
+        publish_discovery_configs(
+            client,
+            settings.topic_prefix,
+            (radio.controller_id for radio in settings.radios),
+        )
+    else:
+        LOGGER.info("MQTT discovery publishing is disabled")
 
     threads = [
         threading.Thread(

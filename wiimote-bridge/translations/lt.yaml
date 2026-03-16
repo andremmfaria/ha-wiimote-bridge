@@ -2,6 +2,9 @@ configuration:
   radios:
     name: Radijo moduliai
     description: ESP32 radijo modulių sąrašas. Kiekvienas įrašas turi turėti port, baud ir controller_id.
+  discover_enabled:
+    name: MQTT Discovery
+    description: Įjungia arba išjungia Home Assistant MQTT Discovery konfigūracijų publikavimą.
   mqtt_host:
     name: MQTT serveris
     description: MQTT brokerio serverio pavadinimas, gaunantis Wii Remote įvykius.

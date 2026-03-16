@@ -31,6 +31,7 @@ The add-on is packaged as a Home Assistant custom repository and publishes pre-b
 - Works with standard Wii Remotes
 - Dedicated MQTT topics for button, connection, heartbeat, and battery
 - Passthrough MQTT events topics for all valid firmware JSON messages
+- MQTT Discovery auto-registers WiiMote entities in Home Assistant
 
 ## Repository Structure
 
@@ -85,11 +86,14 @@ radios:
     baud: 115200
     controller_id: 1
 mqtt_host: core-mosquitto
+discover_enabled: true
 mqtt_port: 1883
 topic_prefix: wiimote
 ```
 
 Each entry in `radios` defines one ESP32 radio. Add more entries for each additional ESP32 connected to the host.
+
+Set `discover_enabled: false` to disable Home Assistant MQTT Discovery publishing.
 
 Then:
 
@@ -108,6 +112,12 @@ wiimote/1/status/heartbeat
 wiimote/1/status/battery
 wiimote/1/events/status
 ```
+
+4. Home Assistant MQTT Discovery entities are created automatically under the default `homeassistant` discovery prefix:
+
+- one connectivity binary sensor per controller
+- one battery sensor per controller
+- one button binary sensor per supported button
 
 Payloads:
 

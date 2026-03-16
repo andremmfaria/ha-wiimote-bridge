@@ -1,5 +1,5 @@
 name: "WiiMote Bridge"
-version: "0.3.1"
+version: "0.4.0"
 slug: "wiimote_bridge"
 description: |
   Bridge a Nintendo Wii Remote to Home Assistant using an ESP32 over USB serial.
@@ -24,6 +24,7 @@ options:
     - port: "/dev/ttyUSB0"
       baud: 115200
       controller_id: 1
+  discover_enabled: true
   mqtt_host: "core-mosquitto"
   mqtt_port: 1883
   mqtt_username: ""
@@ -36,6 +37,7 @@ schema:
     - port: device(subsystem=tty)
       baud: int
       controller_id: int
+  discover_enabled: bool
   mqtt_host: str
   mqtt_port: port
   mqtt_username: str

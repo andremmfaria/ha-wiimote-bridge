@@ -71,6 +71,7 @@ radios:
   - port: /dev/ttyUSB0
     baud: 115200
     controller_id: 1
+discover_enabled: true
 mqtt_host: core-mosquitto
 mqtt_port: 1883
 mqtt_username: ""
@@ -84,6 +85,7 @@ log_level: info
 | Option | Meaning |
 | --- | --- |
 | `radios` | List of ESP32 radios: each has `port`, `baud`, and `controller_id` |
+| `discover_enabled` | Enable/disable Home Assistant MQTT Discovery publishing |
 | `mqtt_host` | Hostname or IP of the MQTT broker |
 | `mqtt_port` | Broker TCP port |
 | `mqtt_username` | Optional MQTT username |

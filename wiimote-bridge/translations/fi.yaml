@@ -2,6 +2,9 @@ configuration:
   radios:
     name: Radiot
     description: Luettelo ESP32-radioista. Jokaisessa merkinnässä on oltava port, baud ja controller_id.
+  discover_enabled:
+    name: MQTT Discovery
+    description: Ottaa käyttöön tai poistaa käytöstä Home Assistantin MQTT Discovery -asetusten julkaisemisen.
   mqtt_host:
     name: MQTT-isäntä
     description: MQTT-välittäjän isäntänimi, joka vastaanottaa Wii Remote -tapahtumat.

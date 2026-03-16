@@ -2,6 +2,9 @@ configuration:
   radios:
     name: Raidiónna
     description: Liosta raidiónna ESP32. Caithfidh port, baud agus controller_id a bheith i ngach iontráil.
+  discover_enabled:
+    name: MQTT Discovery
+    description: Cumasaíonn nó díchumasaíonn sé foilsiú cumraíochtaí MQTT Discovery do Home Assistant.
   mqtt_host:
     name: Óstach MQTT
     description: Ainm óstaigh an bhróicéara MQTT a fhaigheann imeachtaí Wii Remote.

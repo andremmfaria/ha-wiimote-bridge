@@ -8,12 +8,28 @@ class _FakeClient:
     def __init__(self):
         self.stopped = False
         self.disconnected = False
+        self.published = []
 
     def loop_stop(self):
         self.stopped = True
 
     def disconnect(self):
         self.disconnected = True
+
+    def is_connected(self):
+        return True
+
+    def publish(self, topic, payload, retain=False):
+        self.published.append((topic, payload, retain))
+
+        class _Result:
+            rc = 0
+
+            @staticmethod
+            def wait_for_publish():
+                return None
+
+        return _Result()
 
 
 class _FakeSerial:
@@ -78,6 +94,72 @@ def test_run_spawns_thread_per_radio(monkeypatch):
     assert spawned[1]["name"] == "radio-2"
     assert fake_client.stopped is True
     assert fake_client.disconnected is True
+
+
+def test_run_publishes_discovery_for_all_radios(monkeypatch):
+    fake_client = _FakeClient()
+    called = {}
+
+    class FakeThread:
+        def __init__(self, target, args, daemon, name):
+            pass
+
+        def start(self):
+            pass
+
+        def join(self, timeout=None):
+            pass
+
+    monkeypatch.setattr(run_module.threading, "Thread", FakeThread)
+    monkeypatch.setenv(
+        "RADIOS",
+        '[{"port":"/dev/ttyUSB0","baud":115200,"controller_id":1},'
+        '{"port":"/dev/ttyUSB1","baud":115200,"controller_id":4}]',
+    )
+    monkeypatch.setattr(run_module, "connect_mqtt", lambda _settings: fake_client)
+    monkeypatch.setattr(run_module, "configure_logging", lambda level: level)
+
+    def fake_publish_discovery_configs(_client, _topic_prefix, wiimote_ids):
+        called["args"] = (_topic_prefix, list(wiimote_ids))
+
+    monkeypatch.setattr(run_module, "publish_discovery_configs", fake_publish_discovery_configs)
+    _patch_signal_handlers(monkeypatch)
+
+    result = run_module.run()
+
+    assert result == 0
+    assert called["args"] == ("wiimote", [1, 4])
+
+
+def test_run_skips_discovery_when_disabled(monkeypatch):
+    fake_client = _FakeClient()
+    called = {"count": 0}
+
+    class FakeThread:
+        def __init__(self, target, args, daemon, name):
+            pass
+
+        def start(self):
+            pass
+
+        def join(self, timeout=None):
+            pass
+
+    monkeypatch.setattr(run_module.threading, "Thread", FakeThread)
+    monkeypatch.setenv("DISCOVER_ENABLED", "false")
+    monkeypatch.setattr(run_module, "connect_mqtt", lambda _settings: fake_client)
+    monkeypatch.setattr(run_module, "configure_logging", lambda level: level)
+
+    def fake_publish_discovery_configs(_client, _topic_prefix, wiimote_ids):
+        called["count"] += 1
+
+    monkeypatch.setattr(run_module, "publish_discovery_configs", fake_publish_discovery_configs)
+    _patch_signal_handlers(monkeypatch)
+
+    result = run_module.run()
+
+    assert result == 0
+    assert called["count"] == 0
 
 
 def test_run_uses_configured_log_level(monkeypatch):

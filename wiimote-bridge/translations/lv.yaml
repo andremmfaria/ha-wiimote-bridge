@@ -2,6 +2,9 @@ configuration:
   radios:
     name: Radio moduļi
     description: ESP32 radio moduļu saraksts. Katram ierakstam jāiekļauj port, baud un controller_id.
+  discover_enabled:
+    name: MQTT Discovery
+    description: Iespējo vai atspējo Home Assistant MQTT Discovery konfigurāciju publicēšanu.
   mqtt_host:
     name: MQTT resursdators
     description: MQTT brokera resursdatora nosaukums, kas saņem Wii Remote notikumus.

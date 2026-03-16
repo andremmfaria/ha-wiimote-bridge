@@ -2,6 +2,9 @@ configuration:
   radios:
     name: Radjijiet
     description: Lista ta' radjijiet ESP32. Kull entrata trid tinkludi port, baud u controller_id.
+  discover_enabled:
+    name: MQTT Discovery
+    description: Jattiva jew jiddiżattiva l-pubblikazzjoni tal-konfigurazzjonijiet MQTT Discovery għal Home Assistant.
   mqtt_host:
     name: Host MQTT
     description: L-isem tal-host tal-broker MQTT li jirċievi l-avvenimenti tal-Wii Remote.

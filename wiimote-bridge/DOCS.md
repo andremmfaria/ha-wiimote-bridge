@@ -74,6 +74,7 @@ radios:
   - port: /dev/ttyUSB0
     baud: 115200
     controller_id: 1
+discover_enabled: true
 mqtt_host: core-mosquitto
 mqtt_port: 1883
 mqtt_username: ""
@@ -107,6 +108,18 @@ radios:
 ```
 
 Due to limitations in the ESP32 Classic HID stack, each ESP32 radio can pair with only one Wii Remote at a time. One add-on instance manages all radios, opening a dedicated serial reader thread per entry.
+
+#### `discover_enabled`
+
+Controls whether the add-on publishes Home Assistant MQTT Discovery config topics on startup.
+
+Default:
+
+```text
+true
+```
+
+Set this to `false` if you want to manage entities manually and disable auto-discovery.
 
 #### `mqtt_host`
 
@@ -230,6 +243,22 @@ Supported incoming message types:
 - `battery`
 
 ## MQTT Topics Published by the Add-on
+
+## Home Assistant MQTT Discovery
+
+On startup, the add-on publishes retained MQTT Discovery config topics so Home Assistant can auto-create entities for each configured `controller_id`.
+
+Discovery prefix:
+
+```text
+homeassistant
+```
+
+Entity types created per controller:
+
+- Connectivity binary sensor (`.../status/connected`)
+- Battery sensor (`.../status/battery`)
+- Button binary sensors for `A`, `B`, `UP`, `DOWN`, `LEFT`, `RIGHT`, `PLUS`, `MINUS`, `HOME`, `ONE`, `TWO`
 
 ### Button Events
 

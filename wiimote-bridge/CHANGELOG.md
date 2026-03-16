@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0
+
+- Replace single-radio config (`serial_port`, `serial_baud`, `controller_id`) with a `radios` list so one add-on instance can manage multiple ESP32 radios.
+- Run one serial reader thread per configured radio and route events with each radio's `controller_id`.
+- Add Home Assistant MQTT Discovery publishing for connection, battery, and button entities per controller.
+- Add `discover_enabled` option to enable or disable MQTT Discovery publishing.
+- Update add-on schema, startup environment wiring, translations, and documentation for the new `radios` and `discover_enabled` options.
+- Expand automated tests to cover multi-radio runtime behavior and MQTT Discovery publishing.
+
 ## 0.3.1
 
 - Add add-on artwork files at `wiimote-bridge/icon.png` and `wiimote-bridge/logo.png` so Home Assistant can render the add-on icon and detail logo.

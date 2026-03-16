@@ -12,6 +12,7 @@ def test_load_settings_from_environment(monkeypatch):
     monkeypatch.setenv("MQTT_PASSWORD", "secret")
     monkeypatch.setenv("TOPIC_PREFIX", "wm")
     monkeypatch.setenv("LOG_LEVEL", "DEBUG")
+    monkeypatch.setenv("DISCOVER_ENABLED", "false")
 
     settings = load_settings()
 
@@ -25,6 +26,7 @@ def test_load_settings_from_environment(monkeypatch):
     assert settings.mqtt_password == "secret"
     assert settings.topic_prefix == "wm"
     assert settings.log_level == "debug"
+    assert settings.discover_enabled is False
 
 
 def test_load_settings_multiple_radios(monkeypatch):
@@ -40,4 +42,29 @@ def test_load_settings_multiple_radios(monkeypatch):
     assert settings.radios[0].controller_id == 1
     assert settings.radios[1].port == "/dev/ttyUSB1"
     assert settings.radios[1].controller_id == 2
+    assert settings.discover_enabled is True
+
+
+def test_load_settings_accepts_single_radio_object(monkeypatch):
+    monkeypatch.setenv(
+        "RADIOS",
+        '{"port":"/dev/ttyUSB0","baud":115200,"controller_id":3}',
+    )
+
+    settings = load_settings()
+
+    assert len(settings.radios) == 1
+    assert settings.radios[0].controller_id == 3
+
+
+def test_load_settings_accepts_double_encoded_radios_json(monkeypatch):
+    monkeypatch.setenv(
+        "RADIOS",
+        '"[{\\"port\\":\\"/dev/ttyUSB0\\",\\"baud\\":115200,\\"controller_id\\":5}]"',
+    )
+
+    settings = load_settings()
+
+    assert len(settings.radios) == 1
+    assert settings.radios[0].controller_id == 5
 

@@ -2,6 +2,9 @@ configuration:
   radios:
     name: Radijske enote
     description: Seznam radijskih enot ESP32. Vsak vnos mora vsebovati port, baud in controller_id.
+  discover_enabled:
+    name: MQTT Discovery
+    description: Omogoči ali onemogoči objavo konfiguracij MQTT Discovery za Home Assistant.
   mqtt_host:
     name: MQTT gostitelj
     description: Ime gostitelja MQTT posrednika, ki prejema dogodke Wii Remote.

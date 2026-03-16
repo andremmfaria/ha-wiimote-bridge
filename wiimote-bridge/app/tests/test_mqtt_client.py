@@ -114,6 +114,48 @@ def test_publish_heartbeat_normalizes_wiimote_id(monkeypatch):
     )
 
 
+def test_publish_discovery_configs_publishes_connected_battery_and_buttons(monkeypatch):
+    published = []
+
+    def fake_publish(client, topic, payload, retain=False):
+        published.append((topic, payload, retain))
+        return True
+
+    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+
+    mqtt_client.publish_discovery_configs(object(), "wiimote", [7])
+
+    # 1 connected + 1 battery + 11 button entities
+    assert len(published) == 13
+    assert published[0][0] == "homeassistant/binary_sensor/wiimote_7/connected/config"
+    assert published[0][2] is True
+    assert '"state_topic":"wiimote/7/status/connected"' in published[0][1]
+
+    battery_entry = next(x for x in published if x[0] == "homeassistant/sensor/wiimote_7/battery/config")
+    assert battery_entry[2] is True
+    assert '"state_topic":"wiimote/7/status/battery"' in battery_entry[1]
+
+    button_entry = next(
+        x for x in published if x[0] == "homeassistant/binary_sensor/wiimote_7/button_a/config"
+    )
+    assert button_entry[2] is True
+    assert '"state_topic":"wiimote/7/button/A"' in button_entry[1]
+
+
+def test_publish_discovery_configs_respects_custom_discovery_prefix(monkeypatch):
+    published = []
+
+    def fake_publish(client, topic, payload, retain=False):
+        published.append((topic, payload, retain))
+        return True
+
+    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+
+    mqtt_client.publish_discovery_configs(object(), "wiimote", [1], discovery_prefix="ha")
+
+    assert published[0][0].startswith("ha/")
+
+
 def test_connect_mqtt_sets_auth_and_starts_loop(monkeypatch):
     calls = {}
 
@@ -136,6 +178,7 @@ def test_connect_mqtt_sets_auth_and_starts_loop(monkeypatch):
 
     settings = Settings(
         radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
+        discover_enabled=True,
         mqtt_host="broker.local",
         mqtt_port=2883,
         mqtt_username="u",
@@ -174,6 +217,7 @@ def test_connect_mqtt_on_disconnect_accepts_v2_signature(monkeypatch):
 
     settings = Settings(
         radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
+        discover_enabled=True,
         mqtt_host="broker.local",
         mqtt_port=1883,
         mqtt_username="",

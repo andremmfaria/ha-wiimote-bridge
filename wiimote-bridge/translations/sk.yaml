@@ -2,6 +2,9 @@ configuration:
   radios:
     name: Rádiá
     description: Zoznam rádií ESP32. Každá položka musí obsahovať port, baud a controller_id.
+  discover_enabled:
+    name: MQTT Discovery
+    description: Zapína alebo vypína publikovanie konfigurácií MQTT Discovery pre Home Assistant.
   mqtt_host:
     name: MQTT hostiteľ
     description: Názov hostiteľa MQTT brokera, ktorý prijíma udalosti Wii Remote.

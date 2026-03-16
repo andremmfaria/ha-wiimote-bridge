@@ -15,6 +15,7 @@ class RadioConfig:
 @dataclass(frozen=True)
 class Settings:
     radios: tuple[RadioConfig, ...]
+    discover_enabled: bool
     mqtt_host: str
     mqtt_port: int
     mqtt_username: str
@@ -26,22 +27,63 @@ class Settings:
 _DEFAULT_RADIOS = '[{"port":"/dev/ttyUSB0","baud":115200,"controller_id":1}]'
 
 
+def _as_bool(value: object, default: bool = True) -> bool:
+    if value is None:
+        return default
+
+    if isinstance(value, bool):
+        return value
+
+    normalized = str(value).strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
+def _parse_radios(raw_value: object) -> tuple[RadioConfig, ...]:
+    radios_data: object = raw_value
+
+    # Most environments pass a JSON string, but Home Assistant/bashio
+    # can occasionally provide a single object or an extra-quoted JSON string.
+    if isinstance(radios_data, str):
+        radios_data = json.loads(radios_data)
+
+    if isinstance(radios_data, str):
+        radios_data = json.loads(radios_data)
+
+    if isinstance(radios_data, dict):
+        radios_list: list[dict[str, object]] = [radios_data]
+    elif isinstance(radios_data, list):
+        radios_list = radios_data
+    else:
+        raise ValueError("RADIOS must be a JSON list or object")
+
+    radios = []
+    for radio in radios_list:
+        if not isinstance(radio, dict):
+            raise ValueError("Each radio entry must be an object")
+        radios.append(
+            RadioConfig(
+                port=str(radio["port"]),
+                baud=int(radio["baud"]),
+                controller_id=int(radio["controller_id"]),
+            )
+        )
+
+    return tuple(radios)
+
+
 def load_settings() -> Settings:
     settings = Dynaconf(environments=False, envvar_prefix=False)
 
     radios_raw = os.environ.get("RADIOS", _DEFAULT_RADIOS)
-    radios_data = json.loads(radios_raw)
-    radios = tuple(
-        RadioConfig(
-            port=str(r["port"]),
-            baud=int(r["baud"]),
-            controller_id=int(r["controller_id"]),
-        )
-        for r in radios_data
-    )
+    radios = _parse_radios(radios_raw)
 
     return Settings(
         radios=radios,
+        discover_enabled=_as_bool(settings.get("DISCOVER_ENABLED", "true"), default=True),
         mqtt_host=settings.get("MQTT_HOST", "core-mosquitto"),
         mqtt_port=int(settings.get("MQTT_PORT", 1883)),
         mqtt_username=settings.get("MQTT_USERNAME", ""),
