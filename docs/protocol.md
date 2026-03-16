@@ -176,11 +176,13 @@ Fields:
 | --- | --- |
 | `type` | Always `battery` |
 | `wiimote` | Controller identifier |
-| `level` | Raw battery level from the library (commonly `0-255`) |
+| `level` | Battery percentage (`0-100`) |
 
 ## Add-on Mapping
 
 The current add-on publishes both convenience topics and passthrough events topics.
+
+A single add-on instance manages all configured ESP32 radios, operating one serial reader thread per radio. Each radio entry has its own `controller_id`, which the add-on uses in all MQTT topic paths and to rewrite any incoming `wiimote` field before publishing.
 
 Current mapping:
 
@@ -221,4 +223,3 @@ Likely future additions include:
 - command messages from the bridge to firmware
 - rumble control
 - LED control
-- multi-controller routing beyond a single fixed identifier

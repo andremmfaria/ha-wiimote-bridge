@@ -80,12 +80,16 @@ ha-wiimote-bridge/
 4. Configure the add-on:
 
 ```yaml
-serial_port: /dev/ttyUSB0
-serial_baud: 115200
+radios:
+  - port: /dev/ttyUSB0
+    baud: 115200
+    controller_id: 1
 mqtt_host: core-mosquitto
 mqtt_port: 1883
 topic_prefix: wiimote
 ```
+
+Each entry in `radios` defines one ESP32 radio. Add more entries for each additional ESP32 connected to the host.
 
 Then:
 
@@ -141,7 +145,8 @@ Other ESP32 boards should work as long as they support **Bluetooth Classic**.
 - No accelerometer or nunchuk MQTT topics yet
 - No command channel from Home Assistant back to firmware yet
 - Motion / accelerometer support will be added later
-- Only one Wii Remote supported in the current firmware
+- Each ESP32 radio can pair with only one Wii Remote when using ESP32Wiimote
+- To use multiple Wii Remotes, connect multiple ESP32 radios and add one entry per radio to `radios` in the single add-on instance
 
 ## Why This Exists
 
@@ -155,7 +160,6 @@ This project repurposes them using inexpensive ESP32 hardware.
 - accelerometer support
 - rumble control from Home Assistant
 - LED control
-- multiple Wii Remotes
 - MQTT auto-discovery
 
 ## Release Process

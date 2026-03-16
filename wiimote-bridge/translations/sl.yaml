@@ -1,10 +1,7 @@
 configuration:
-  serial_port:
-    name: Serijska vrata
-    description: Serijska naprava, ki jo ESP32 izpostavi na gostitelju Home Assistant.
-  serial_baud:
-    name: Hitrost serijskega porta
-    description: Baud hitrost, ki jo uporablja vdelana programska oprema ESP32.
+  radios:
+    name: Radijske enote
+    description: Seznam radijskih enot ESP32. Vsak vnos mora vsebovati port, baud in controller_id.
   mqtt_host:
     name: MQTT gostitelj
     description: Ime gostitelja MQTT posrednika, ki prejema dogodke Wii Remote.

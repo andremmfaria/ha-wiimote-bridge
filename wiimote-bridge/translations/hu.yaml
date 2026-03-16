@@ -1,10 +1,7 @@
 configuration:
-  serial_port:
-    name: Soros port
-    description: Az ESP32 által a Home Assistant gazdagépen elérhetővé tett soros eszköz.
-  serial_baud:
-    name: Soros átviteli sebesség
-    description: Az ESP32 firmware által használt baud sebesség.
+  radios:
+    name: Rádiók
+    description: ESP32 rádiók listája. Minden bejegyzésnek tartalmaznia kell a port, baud és controller_id értékeket.
   mqtt_host:
     name: MQTT hoszt
     description: Annak az MQTT brokernek a hosztneve, amely a Wii Remote eseményeit fogadja.

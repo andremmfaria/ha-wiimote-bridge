@@ -1,6 +1,6 @@
 import json
 import signal
-import time
+import threading
 from typing import Any
 
 import serial
@@ -8,46 +8,30 @@ import serial
 from wiimote_bridge.core.handlers import handle_message
 from wiimote_bridge.transport.mqtt_client import connect_mqtt
 from wiimote_bridge.transport.serial_reader import open_serial
-from wiimote_bridge.utils.config import load_settings
+from wiimote_bridge.utils.config import RadioConfig, load_settings
 from wiimote_bridge.utils.logging import configure_logging, get_logger
 
 
 LOGGER = get_logger(__name__)
 
 
-def run() -> int:
-    settings = load_settings()
-    configured_log_level = configure_logging(settings.log_level)
-    running = True
-
-    LOGGER.info("Starting WiiMote Bridge application")
-    LOGGER.info("Log level: %s", configured_log_level.upper())
-    LOGGER.info("Serial port: %s @ %s baud", settings.serial_port, settings.serial_baud)
-    LOGGER.info("MQTT broker: %s:%s", settings.mqtt_host, settings.mqtt_port)
-    LOGGER.debug("MQTT username configured: %s", bool(settings.mqtt_username))
-    LOGGER.debug("Topic prefix: %s", settings.topic_prefix)
-
-    def handle_signal(signum: int, frame: Any) -> None:
-        nonlocal running
-        del frame
-        LOGGER.info("Received signal %s, shutting down", signum)
-        running = False
-
-    signal.signal(signal.SIGTERM, handle_signal)
-    signal.signal(signal.SIGINT, handle_signal)
-
-    client = connect_mqtt(settings)
+def run_radio(
+    radio: RadioConfig,
+    client: Any,
+    topic_prefix: str,
+    stop_event: threading.Event,
+) -> None:
+    radio_logger = get_logger(f"wiimote_bridge.radio.{radio.controller_id}")
     ser = None
-
     try:
-        while running:
+        while not stop_event.is_set():
             if ser is None:
                 try:
-                    ser = open_serial(settings)
-                    LOGGER.info("Serial connection established")
+                    ser = open_serial(radio.port, radio.baud)
+                    radio_logger.info("Serial connection established on %s", radio.port)
                 except Exception as exc:
-                    LOGGER.error("Serial open failed: %s", exc)
-                    time.sleep(5)
+                    radio_logger.error("Serial open failed on %s: %s", radio.port, exc)
+                    stop_event.wait(5)
                     continue
 
             try:
@@ -59,33 +43,37 @@ def run() -> int:
                 if not text:
                     continue
 
-                LOGGER.info("SERIAL %s", text)
+                radio_logger.info("SERIAL %s", text)
 
                 if not text.startswith("{"):
-                    LOGGER.debug("Skipping non-JSON serial line")
+                    radio_logger.debug("Skipping non-JSON serial line")
                     continue
 
                 try:
                     msg = json.loads(text)
                 except json.JSONDecodeError:
-                    LOGGER.warning("Skipping invalid JSON line")
+                    radio_logger.warning("Skipping invalid JSON line")
                     continue
 
                 if isinstance(msg, dict):
-                    handle_message(client, settings.topic_prefix, msg)
+                    handle_message(client, topic_prefix, radio.controller_id, msg)
 
             except serial.SerialException as exc:
-                LOGGER.error("Serial error: %s", exc)
+                radio_logger.error("Serial error on %s: %s", radio.port, exc)
                 try:
                     ser.close()
                 except Exception:
                     pass
                 ser = None
-                time.sleep(2)
+                stop_event.wait(2)
 
             except Exception as exc:
-                LOGGER.exception("Unexpected error while processing serial data: %s", exc)
-                time.sleep(1)
+                radio_logger.exception(
+                    "Unexpected error while processing serial data on %s: %s",
+                    radio.port,
+                    exc,
+                )
+                stop_event.wait(1)
 
     finally:
         if ser is not None:
@@ -94,11 +82,57 @@ def run() -> int:
             except Exception:
                 pass
 
-        try:
-            client.loop_stop()
-            client.disconnect()
-            LOGGER.info("MQTT client disconnected")
-        except Exception:
-            pass
+
+def run() -> int:
+    settings = load_settings()
+    configured_log_level = configure_logging(settings.log_level)
+
+    LOGGER.info("Starting WiiMote Bridge application")
+    LOGGER.info("Log level: %s", configured_log_level.upper())
+    for radio in settings.radios:
+        LOGGER.info(
+            "Radio: %s @ %s baud, controller ID %s",
+            radio.port,
+            radio.baud,
+            radio.controller_id,
+        )
+    LOGGER.info("MQTT broker: %s:%s", settings.mqtt_host, settings.mqtt_port)
+    LOGGER.debug("MQTT username configured: %s", bool(settings.mqtt_username))
+    LOGGER.debug("Topic prefix: %s", settings.topic_prefix)
+
+    stop_event = threading.Event()
+
+    def handle_signal(signum: int, frame: Any) -> None:
+        del frame
+        LOGGER.info("Received signal %s, shutting down", signum)
+        stop_event.set()
+
+    signal.signal(signal.SIGTERM, handle_signal)
+    signal.signal(signal.SIGINT, handle_signal)
+
+    client = connect_mqtt(settings)
+
+    threads = [
+        threading.Thread(
+            target=run_radio,
+            args=(radio, client, settings.topic_prefix, stop_event),
+            daemon=True,
+            name=f"radio-{radio.controller_id}",
+        )
+        for radio in settings.radios
+    ]
+
+    for t in threads:
+        t.start()
+
+    for t in threads:
+        t.join()
+
+    try:
+        client.loop_stop()
+        client.disconnect()
+        LOGGER.info("MQTT client disconnected")
+    except Exception:
+        pass
 
     return 0

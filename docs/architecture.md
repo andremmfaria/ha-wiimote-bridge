@@ -250,18 +250,19 @@ The current implementation intentionally stays narrow.
 
 Today the full system is best described as:
 
-- one controller-focused bridge
+- one controller-focused bridge per ESP32 radio
 - button-event publishing
 - connection-state publishing
 - heartbeat forwarding
 - battery forwarding and battery topic publishing
+
+Because of the current ESP32 Classic HID stack limitations, one ESP32 radio can pair with only one Wii Remote. Scaling to multiple Wii Remotes therefore means attaching multiple ESP32 radios to the host and running one add-on instance per radio with a distinct MQTT controller ID.
 
 Not yet implemented end to end:
 
 - accelerometer MQTT topics
 - commands from Home Assistant back to firmware
 - LED control
-- explicit multi-controller routing
 
 ## Planned Evolution
 
@@ -269,8 +270,7 @@ The current boundaries leave room for future expansion.
 
 Likely next protocol and architecture improvements include:
 
-- battery topic publishing in the add-on
 - motion and accelerometer events
 - bidirectional command topics
 - LED state control
-- support for more than one connected Wii Remote
+- improved reliability and richer per-event data

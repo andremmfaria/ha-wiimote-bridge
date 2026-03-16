@@ -11,11 +11,10 @@ from wiimote_bridge.transport.mqtt_client import (
 )
 
 
-def handle_message(client: mqtt.Client, topic_prefix: str, msg: dict[str, Any]) -> None:
+def handle_message(client: mqtt.Client, topic_prefix: str, wiimote_id: int, msg: dict[str, Any]) -> None:
     msg_type = msg.get("type")
-    wiimote_id = int(msg.get("wiimote", 1))
 
-    publish_event_message(client, topic_prefix, msg)
+    publish_event_message(client, topic_prefix, wiimote_id, msg)
 
     if msg_type == "btn":
         button = msg.get("btn")

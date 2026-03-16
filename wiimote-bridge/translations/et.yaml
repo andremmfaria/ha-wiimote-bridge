@@ -1,10 +1,7 @@
 configuration:
-  serial_port:
-    name: Jadaport
-    description: ESP32 poolt Home Assistanti hostis avatud jadaseade.
-  serial_baud:
-    name: Jadapordi baudikiirus
-    description: ESP32 püsivara kasutatav baudikiirus.
+  radios:
+    name: Raadiod
+    description: ESP32 raadiote loend. Iga kirje peab sisaldama port, baud ja controller_id.
   mqtt_host:
     name: MQTT host
     description: MQTT vahendaja hostinimi, mis võtab vastu Wii Remote'i sündmused.

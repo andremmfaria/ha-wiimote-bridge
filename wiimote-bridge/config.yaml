@@ -20,8 +20,10 @@ services:
 uart: true
 
 options:
-  serial_port: "/dev/ttyUSB0"
-  serial_baud: 115200
+  radios:
+    - port: "/dev/ttyUSB0"
+      baud: 115200
+      controller_id: 1
   mqtt_host: "core-mosquitto"
   mqtt_port: 1883
   mqtt_username: ""
@@ -30,8 +32,10 @@ options:
   log_level: "info"
 
 schema:
-  serial_port: device(subsystem=tty)
-  serial_baud: int
+  radios:
+    - port: device(subsystem=tty)
+      baud: int
+      controller_id: int
   mqtt_host: str
   mqtt_port: port
   mqtt_username: str

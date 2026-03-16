@@ -1,10 +1,7 @@
 configuration:
-  serial_port:
-    name: Sarjaportti
-    description: ESP32:n Home Assistant -isännällä tarjoama sarjalaite.
-  serial_baud:
-    name: Sarjayhteyden baudinopeus
-    description: ESP32-laiteohjelmiston käyttämä baudinopeus.
+  radios:
+    name: Radiot
+    description: Luettelo ESP32-radioista. Jokaisessa merkinnässä on oltava port, baud ja controller_id.
   mqtt_host:
     name: MQTT-isäntä
     description: MQTT-välittäjän isäntänimi, joka vastaanottaa Wii Remote -tapahtumat.

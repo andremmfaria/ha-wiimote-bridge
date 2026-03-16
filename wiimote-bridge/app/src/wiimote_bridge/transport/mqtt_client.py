@@ -96,15 +96,26 @@ def mqtt_publish(client: mqtt.Client, topic: str, payload: str, retain: bool = F
     return True
 
 
-def publish_event_message(client: mqtt.Client, topic_prefix: str, payload_obj: dict[str, Any]) -> None:
+def _normalize_wiimote_payload(payload_obj: dict[str, Any], wiimote_id: int) -> dict[str, Any]:
+    if "wiimote" not in payload_obj:
+        return payload_obj
+
+    normalized_payload = dict(payload_obj)
+    normalized_payload["wiimote"] = wiimote_id
+    return normalized_payload
+
+
+def publish_event_message(client: mqtt.Client, topic_prefix: str, wiimote_id: int, payload_obj: dict[str, Any]) -> None:
     msg_type = str(payload_obj.get("type", "unknown"))
-    payload = json.dumps(payload_obj, separators=(",", ":"))
 
     if "wiimote" in payload_obj:
-        topic = f"{topic_prefix}/{int(payload_obj['wiimote'])}/events/{msg_type}"
+        topic = f"{topic_prefix}/{wiimote_id}/events/{msg_type}"
+        payload_obj = _normalize_wiimote_payload(payload_obj, wiimote_id)
     else:
         device = str(payload_obj.get("device", "bridge"))
         topic = f"{topic_prefix}/device/{device}/events/{msg_type}"
+
+    payload = json.dumps(payload_obj, separators=(",", ":"))
 
     mqtt_publish(client, topic, payload, retain=False)
 
@@ -128,5 +139,5 @@ def publish_battery(client: mqtt.Client, topic_prefix: str, wiimote_id: int, lev
 
 def publish_heartbeat(client: mqtt.Client, topic_prefix: str, wiimote_id: int, payload_obj: dict[str, Any]) -> None:
     topic = f"{topic_prefix}/{wiimote_id}/status/heartbeat"
-    payload = json.dumps(payload_obj, separators=(",", ":"))
+    payload = json.dumps(_normalize_wiimote_payload(payload_obj, wiimote_id), separators=(",", ":"))
     mqtt_publish(client, topic, payload, retain=False)

@@ -1,5 +1,5 @@
 from wiimote_bridge.transport import mqtt_client
-from wiimote_bridge.utils.config import Settings
+from wiimote_bridge.utils.config import RadioConfig, Settings
 
 
 def test_publish_button_formats_topic_and_payload(monkeypatch):
@@ -49,13 +49,32 @@ def test_publish_event_message_for_wiimote(monkeypatch):
 
     monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
 
-    mqtt_client.publish_event_message(object(), "wiimote", {"type": "status", "wiimote": 1, "waiting": True})
+    mqtt_client.publish_event_message(object(), "wiimote", 1, {"type": "status", "wiimote": 1, "waiting": True})
 
     assert called["data"] == (
         "wiimote/1/events/status",
         '{"type":"status","wiimote":1,"waiting":true}',
         False,
     )
+
+
+def test_publish_event_message_for_wiimote_normalizes_fixed_id(monkeypatch):
+    called = {}
+
+    def fake_publish(client, topic, payload, retain=False):
+        called["data"] = (topic, payload, retain)
+
+    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+
+    mqtt_client.publish_event_message(object(), "wiimote", 4, {"type": "status", "wiimote": 9, "waiting": True})
+
+    assert called["data"] == (
+        "wiimote/4/events/status",
+        '{"type":"status","wiimote":4,"waiting":true}',
+        False,
+    )
+
+
 def test_publish_event_message_for_device(monkeypatch):
     called = {}
 
@@ -64,11 +83,33 @@ def test_publish_event_message_for_device(monkeypatch):
 
     monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
 
-    mqtt_client.publish_event_message(object(), "wiimote", {"type": "status", "device": "esp32", "ready": True})
+    mqtt_client.publish_event_message(object(), "wiimote", 6, {"type": "status", "device": "esp32", "ready": True})
 
     assert called["data"] == (
         "wiimote/device/esp32/events/status",
         '{"type":"status","device":"esp32","ready":true}',
+        False,
+    )
+
+
+def test_publish_heartbeat_normalizes_wiimote_id(monkeypatch):
+    called = {}
+
+    def fake_publish(client, topic, payload, retain=False):
+        called["data"] = (topic, payload, retain)
+
+    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+
+    mqtt_client.publish_heartbeat(
+        object(),
+        "wiimote",
+        3,
+        {"type": "heartbeat", "device": "esp32", "wiimote": 1, "connected": True},
+    )
+
+    assert called["data"] == (
+        "wiimote/3/status/heartbeat",
+        '{"type":"heartbeat","device":"esp32","wiimote":3,"connected":true}',
         False,
     )
 
@@ -94,8 +135,7 @@ def test_connect_mqtt_sets_auth_and_starts_loop(monkeypatch):
     monkeypatch.setattr(mqtt_client.mqtt, "Client", FakeClient)
 
     settings = Settings(
-        serial_port="/dev/ttyUSB0",
-        serial_baud=115200,
+        radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
         mqtt_host="broker.local",
         mqtt_port=2883,
         mqtt_username="u",
@@ -133,8 +173,7 @@ def test_connect_mqtt_on_disconnect_accepts_v2_signature(monkeypatch):
     monkeypatch.setattr(mqtt_client.mqtt, "Client", FakeClient)
 
     settings = Settings(
-        serial_port="/dev/ttyUSB0",
-        serial_baud=115200,
+        radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
         mqtt_host="broker.local",
         mqtt_port=1883,
         mqtt_username="",

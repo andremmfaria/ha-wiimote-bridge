@@ -1,12 +1,20 @@
+import json
+import os
 from dataclasses import dataclass
 
 from dynaconf import Dynaconf
 
 
 @dataclass(frozen=True)
+class RadioConfig:
+    port: str
+    baud: int
+    controller_id: int
+
+
+@dataclass(frozen=True)
 class Settings:
-    serial_port: str
-    serial_baud: int
+    radios: tuple[RadioConfig, ...]
     mqtt_host: str
     mqtt_port: int
     mqtt_username: str
@@ -15,12 +23,25 @@ class Settings:
     log_level: str = "info"
 
 
+_DEFAULT_RADIOS = '[{"port":"/dev/ttyUSB0","baud":115200,"controller_id":1}]'
+
+
 def load_settings() -> Settings:
     settings = Dynaconf(environments=False, envvar_prefix=False)
 
+    radios_raw = os.environ.get("RADIOS", _DEFAULT_RADIOS)
+    radios_data = json.loads(radios_raw)
+    radios = tuple(
+        RadioConfig(
+            port=str(r["port"]),
+            baud=int(r["baud"]),
+            controller_id=int(r["controller_id"]),
+        )
+        for r in radios_data
+    )
+
     return Settings(
-        serial_port=settings.get("SERIAL_PORT", "/dev/ttyUSB0"),
-        serial_baud=int(settings.get("SERIAL_BAUD", 115200)),
+        radios=radios,
         mqtt_host=settings.get("MQTT_HOST", "core-mosquitto"),
         mqtt_port=int(settings.get("MQTT_PORT", 1883)),
         mqtt_username=settings.get("MQTT_USERNAME", ""),

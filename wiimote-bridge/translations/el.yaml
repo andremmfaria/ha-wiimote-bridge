@@ -1,10 +1,7 @@
 configuration:
-  serial_port:
-    name: Σειριακή θύρα
-    description: Η σειριακή συσκευή που εκτίθεται από το ESP32 στον host του Home Assistant.
-  serial_baud:
-    name: Ρυθμός baud σειριακής σύνδεσης
-    description: Ο ρυθμός baud που χρησιμοποιείται από το firmware του ESP32.
+  radios:
+    name: Ραδιόφωνα
+    description: Λίστα από ραδιόφωνα ESP32. Κάθε καταχώριση πρέπει να περιλαμβάνει port, baud και controller_id.
   mqtt_host:
     name: MQTT host
     description: Το όνομα host του MQTT broker που λαμβάνει συμβάντα από το Wii Remote.

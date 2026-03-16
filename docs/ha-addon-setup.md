@@ -67,8 +67,10 @@ After install, open the add-on page and move to the configuration tab.
 Example configuration:
 
 ```yaml
-serial_port: /dev/ttyUSB0
-serial_baud: 115200
+radios:
+  - port: /dev/ttyUSB0
+    baud: 115200
+    controller_id: 1
 mqtt_host: core-mosquitto
 mqtt_port: 1883
 mqtt_username: ""
@@ -81,14 +83,15 @@ log_level: info
 
 | Option | Meaning |
 | --- | --- |
-| `serial_port` | Host serial device used by the ESP32 |
-| `serial_baud` | Serial speed, must match firmware |
+| `radios` | List of ESP32 radios: each has `port`, `baud`, and `controller_id` |
 | `mqtt_host` | Hostname or IP of the MQTT broker |
 | `mqtt_port` | Broker TCP port |
 | `mqtt_username` | Optional MQTT username |
 | `mqtt_password` | Optional MQTT password |
 | `topic_prefix` | Base topic prefix for all MQTT publications |
 | `log_level` | Application log verbosity: `debug`, `info`, `warning`, or `error` |
+
+Due to limitations in the ESP32 Classic HID stack, each ESP32 radio can pair with only one Wii Remote at a time. A single add-on instance manages all configured radios, running one serial reader thread per entry. Add additional entries to `radios` for each extra ESP32 connected to the host.
 
 ### Choosing `log_level`
 
@@ -113,7 +116,7 @@ Look for the ESP32 USB serial entry. Common values are:
 - `/dev/ttyUSB1`
 - `/dev/ttyACM0`
 
-Use that exact value in `serial_port`.
+Use that exact value in `port` under the relevant `radios` entry.
 
 ## Start the Add-on
 
@@ -128,14 +131,12 @@ Expected startup output includes a shell summary and application logs such as:
 ```log
 Starting WiiMote Bridge
 Application log level: info
-Serial port: /dev/ttyUSB0
-Serial baud: 115200
 MQTT host: core-mosquitto:1883
 Topic prefix: wiimote
 INFO wiimote_bridge.core.run: Starting WiiMote Bridge application
 INFO wiimote_bridge.transport.mqtt_client: Connected to MQTT broker at core-mosquitto:1883
 INFO wiimote_bridge.transport.serial_reader: Opening serial port /dev/ttyUSB0 at 115200 baud
-INFO wiimote_bridge.core.run: Serial connection established
+INFO wiimote_bridge.radio.1: Serial connection established on /dev/ttyUSB0
 ```
 
 ## Pair the Wii Remote
@@ -145,8 +146,8 @@ Press `1 + 2` on the Wii Remote while the firmware and add-on are running.
 Once connected, you should see serial lines such as:
 
 ```log
-SERIAL {"type":"status","wiimote":1,"connected":true}
-SERIAL {"type":"btn","wiimote":1,"btn":"A","down":true}
+INFO wiimote_bridge.radio.1: SERIAL {"type":"status","wiimote":1,"connected":true}
+INFO wiimote_bridge.radio.1: SERIAL {"type":"btn","wiimote":1,"btn":"A","down":true}
 ```
 
 And matching MQTT publication logs such as:
@@ -160,7 +161,7 @@ MQTT wiimote/1/button/A -> ON
 ### Button Topics
 
 ```text
-<topic_prefix>/<wiimote_id>/button/<button_name>
+<topic_prefix>/<controller_id>/button/<button_name>
 ```
 
 Examples:
@@ -180,7 +181,7 @@ Payloads:
 ### Connection State Topic
 
 ```text
-<topic_prefix>/<wiimote_id>/status/connected
+<topic_prefix>/<controller_id>/status/connected
 ```
 
 Example:
@@ -199,15 +200,15 @@ This topic is retained.
 ### Heartbeat Topic
 
 ```text
-<topic_prefix>/<wiimote_id>/status/heartbeat
+<topic_prefix>/<controller_id>/status/heartbeat
 ```
 
-The payload is the original JSON heartbeat object from the firmware.
+The payload is the heartbeat JSON forwarded by the bridge, with `wiimote` normalized to the configured `controller_id`.
 
 ### Battery Topic
 
 ```text
-<topic_prefix>/<wiimote_id>/status/battery
+<topic_prefix>/<controller_id>/status/battery
 ```
 
 Example:
@@ -231,7 +232,7 @@ Every firmware message is also forwarded as event JSON.
 Topic patterns:
 
 ```text
-<topic_prefix>/<wiimote_id>/events/<type>
+<topic_prefix>/<controller_id>/events/<type>
 <topic_prefix>/device/<device>/events/<type>
 ```
 
@@ -285,8 +286,8 @@ After installation, verify these in order:
 
 Check:
 
-1. `serial_port` is correct.
-2. `serial_baud` matches firmware.
+1. `port` in `radios` is correct.
+2. `baud` in `radios` matches firmware.
 3. The ESP32 firmware is running and producing valid JSON.
 4. The MQTT broker is running and reachable.
 5. Your automation is listening to the correct `topic_prefix`.
@@ -295,7 +296,7 @@ Check:
 
 Likely causes:
 
-- wrong serial device path
+- wrong `port` value in `radios`
 - ESP32 disconnected
 - USB cable provides power only
 - device path changed after reconnect
@@ -306,7 +307,7 @@ The add-on retries every 5 seconds.
 
 This usually points to:
 
-- wrong baud rate
+- wrong `baud` value in `radios`
 - corrupted serial output
 - unexpected device on the selected serial port
 

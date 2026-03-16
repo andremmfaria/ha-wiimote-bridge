@@ -1,10 +1,7 @@
 configuration:
-  serial_port:
-    name: Seriālais ports
-    description: Seriālā ierīce, ko ESP32 nodrošina Home Assistant saimniekdatorā.
-  serial_baud:
-    name: Seriālā porta baud ātrums
-    description: Baud ātrums, ko izmanto ESP32 programmaparatūra.
+  radios:
+    name: Radio moduļi
+    description: ESP32 radio moduļu saraksts. Katram ierakstam jāiekļauj port, baud un controller_id.
   mqtt_host:
     name: MQTT resursdators
     description: MQTT brokera resursdatora nosaukums, kas saņem Wii Remote notikumus.

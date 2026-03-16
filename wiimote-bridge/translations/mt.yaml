@@ -1,10 +1,7 @@
 configuration:
-  serial_port:
-    name: Port serjali
-    description: Apparat serjali espost mill-ESP32 fuq il-host ta' Home Assistant.
-  serial_baud:
-    name: Rata baud tas-serje
-    description: Ir-rata baud użata mill-firmware tal-ESP32.
+  radios:
+    name: Radjijiet
+    description: Lista ta' radjijiet ESP32. Kull entrata trid tinkludi port, baud u controller_id.
   mqtt_host:
     name: Host MQTT
     description: L-isem tal-host tal-broker MQTT li jirċievi l-avvenimenti tal-Wii Remote.

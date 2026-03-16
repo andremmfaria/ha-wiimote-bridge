@@ -1,10 +1,7 @@
 configuration:
-  serial_port:
-    name: Nuoseklusis prievadas
-    description: Nuoseklusis įrenginys, kurį ESP32 pateikia Home Assistant serveryje.
-  serial_baud:
-    name: Nuosekliojo ryšio sparta (baud)
-    description: Baud sparta, naudojama ESP32 programinėje įrangoje.
+  radios:
+    name: Radijo moduliai
+    description: ESP32 radijo modulių sąrašas. Kiekvienas įrašas turi turėti port, baud ir controller_id.
   mqtt_host:
     name: MQTT serveris
     description: MQTT brokerio serverio pavadinimas, gaunantis Wii Remote įvykius.

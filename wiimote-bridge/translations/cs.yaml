@@ -1,10 +1,7 @@
 configuration:
-  serial_port:
-    name: Sériový port
-    description: Sériové zařízení zpřístupněné ESP32 na hostiteli Home Assistant.
-  serial_baud:
-    name: Přenosová rychlost sériové linky
-    description: Rychlost baud používaná firmwarem ESP32.
+  radios:
+    name: Rádia
+    description: Seznam rádií ESP32. Každá položka musí obsahovat port, baud a controller_id.
   mqtt_host:
     name: MQTT hostitel
     description: Název hostitele MQTT brokeru, který přijímá události Wii Remote.

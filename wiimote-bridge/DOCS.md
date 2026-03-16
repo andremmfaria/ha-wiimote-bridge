@@ -70,8 +70,10 @@ For a more guided setup flow, see the repository documentation:
 Example add-on configuration:
 
 ```yaml
-serial_port: /dev/ttyUSB0
-serial_baud: 115200
+radios:
+  - port: /dev/ttyUSB0
+    baud: 115200
+    controller_id: 1
 mqtt_host: core-mosquitto
 mqtt_port: 1883
 mqtt_username: ""
@@ -82,29 +84,29 @@ log_level: info
 
 ### Option Reference
 
-#### `serial_port`
+#### `radios`
 
-Serial device exposed by the Home Assistant host for the ESP32.
+A list of ESP32 radios connected to this host. Each entry defines one serial device and its assigned controller identifier.
 
-Typical values:
+Each entry contains:
 
-- `/dev/ttyUSB0`
-- `/dev/ttyUSB1`
-- `/dev/ttyACM0`
+`port`: the serial device path exposed by the Home Assistant host, e.g. `/dev/ttyUSB0`.
+`baud`: the serial baud rate used by the ESP32 firmware. Must match the firmware configuration.
+`controller_id`: bridge-side integer identifier used in all MQTT topic paths for this radio.
 
-If the add-on cannot open this device, it will log an error and retry every 5 seconds.
+Multiple radios example:
 
-#### `serial_baud`
-
-The serial baud rate used by the ESP32 firmware.
-
-Default:
-
-```text
-115200
+```yaml
+radios:
+  - port: /dev/ttyUSB0
+    baud: 115200
+    controller_id: 1
+  - port: /dev/ttyUSB1
+    baud: 115200
+    controller_id: 2
 ```
 
-This must match the firmware configuration. A mismatch can cause garbled serial output, invalid JSON lines, or no usable events at all.
+Due to limitations in the ESP32 Classic HID stack, each ESP32 radio can pair with only one Wii Remote at a time. One add-on instance manages all radios, opening a dedicated serial reader thread per entry.
 
 #### `mqtt_host`
 
@@ -181,14 +183,13 @@ To find the correct serial device in Home Assistant:
 1. Open `Settings -> System -> Hardware`.
 2. Find the ESP32 USB serial entry.
 3. Copy the device path.
-4. Paste that value into `serial_port`.
+4. Paste that value into `port` under the relevant `radios` entry.
 
 ## Application Startup Sequence
 
 When the add-on starts, `run.sh` reads your Home Assistant options and prints a short startup summary, including:
 
-- selected serial port
-- baud rate
+- configured radio ports and baud rates
 - MQTT host and port
 - MQTT topic prefix
 - configured log level
@@ -198,16 +199,14 @@ The Python application then logs its own runtime initialization. Under normal co
 ```log
 Starting WiiMote Bridge
 Application log level: info
-Serial port: /dev/ttyUSB0
-Serial baud: 115200
 MQTT host: core-mosquitto:1883
 Topic prefix: wiimote
 INFO wiimote_bridge.core.run: Starting WiiMote Bridge application
 INFO wiimote_bridge.core.run: Log level: INFO
-INFO wiimote_bridge.core.run: Serial port: /dev/ttyUSB0 @ 115200 baud
+INFO wiimote_bridge.core.run: Radio: /dev/ttyUSB0 @ 115200 baud, controller ID 1
 INFO wiimote_bridge.transport.mqtt_client: Connected to MQTT broker at core-mosquitto:1883
 INFO wiimote_bridge.transport.serial_reader: Opening serial port /dev/ttyUSB0 at 115200 baud
-INFO wiimote_bridge.core.run: Serial connection established
+INFO wiimote_bridge.radio.1: Serial connection established on /dev/ttyUSB0
 ```
 
 ## Runtime Behavior
@@ -237,7 +236,7 @@ Supported incoming message types:
 Button press and release events are published to:
 
 ```text
-<topic_prefix>/<wiimote_id>/button/<button_name>
+<topic_prefix>/<controller_id>/button/<button_name>
 ```
 
 Examples:
@@ -261,7 +260,7 @@ These button messages are published with `retain=false`.
 Connection state events are published to:
 
 ```text
-<topic_prefix>/<wiimote_id>/status/connected
+<topic_prefix>/<controller_id>/status/connected
 ```
 
 Example:
@@ -282,7 +281,7 @@ This topic is published with `retain=true`, which allows subscribers to immediat
 Battery updates are published to:
 
 ```text
-<topic_prefix>/<wiimote_id>/status/battery
+<topic_prefix>/<controller_id>/status/battery
 ```
 
 Example:
@@ -297,7 +296,7 @@ Payload:
 87
 ```
 
-With the current ESP32Wiimote library, battery values are forwarded as raw integer levels from the firmware (commonly `0-255`).
+With the current ESP32Wiimote library, battery values are forwarded as percentage (`0-100`).
 
 This topic is published with `retain=true` so the latest known battery value remains available to subscribers.
 
@@ -306,7 +305,7 @@ This topic is published with `retain=true` so the latest known battery value rem
 Heartbeat messages are published to:
 
 ```text
-<topic_prefix>/<wiimote_id>/status/heartbeat
+<topic_prefix>/<controller_id>/status/heartbeat
 ```
 
 Example payload:
@@ -317,6 +316,8 @@ Example payload:
 
 This topic is published with `retain=false`.
 
+If the payload contains a `wiimote` field, the bridge rewrites it to the configured `controller_id` before publishing.
+
 ### Event Topics
 
 Every incoming firmware message is also forwarded as event JSON so nothing is lost even when the bridge does not expose a dedicated convenience topic shape.
@@ -324,7 +325,7 @@ Every incoming firmware message is also forwarded as event JSON so nothing is lo
 Topics:
 
 ```text
-<topic_prefix>/<wiimote_id>/events/<type>
+<topic_prefix>/<controller_id>/events/<type>
 <topic_prefix>/device/<device>/events/<type>
 ```
 
@@ -337,7 +338,7 @@ wiimote/1/events/heartbeat
 wiimote/device/esp32/events/status
 ```
 
-These event topics carry the original JSON payload from the firmware.
+These event topics carry the firmware JSON payload, with `wiimote` normalized to the configured `controller_id` when present.
 
 ## Serial Protocol Examples
 
@@ -439,26 +440,27 @@ Normal startup:
 INFO wiimote_bridge.core.run: Starting WiiMote Bridge application
 INFO wiimote_bridge.transport.mqtt_client: Connected to MQTT broker at core-mosquitto:1883
 INFO wiimote_bridge.transport.serial_reader: Opening serial port /dev/ttyUSB0 at 115200 baud
+INFO wiimote_bridge.radio.1: Serial connection established on /dev/ttyUSB0
 ```
 
 Normal event flow:
 
 ```log
-INFO wiimote_bridge.core.run: SERIAL {"type":"btn","wiimote":1,"btn":"A","down":true}
+INFO wiimote_bridge.radio.1: SERIAL {"type":"btn","wiimote":1,"btn":"A","down":true}
 INFO wiimote_bridge.transport.mqtt_client: MQTT wiimote/1/button/A -> ON
 ```
 
 Serial problems:
 
 ```log
-ERROR wiimote_bridge.core.run: Serial open failed: ...
-ERROR wiimote_bridge.core.run: Serial error: ...
+ERROR wiimote_bridge.radio.1: Serial open failed on /dev/ttyUSB0: ...
+ERROR wiimote_bridge.radio.1: Serial error on /dev/ttyUSB0: ...
 ```
 
 Malformed input:
 
 ```log
-WARNING wiimote_bridge.core.run: Skipping invalid JSON line
+WARNING wiimote_bridge.radio.1: Skipping invalid JSON line
 ```
 
 Shutdown:
@@ -487,8 +489,8 @@ This means temporary serial disconnects or ESP32 resets usually do not require a
 Check the following:
 
 1. The ESP32 is powered and connected by USB.
-2. The `serial_port` matches the actual host device.
-3. The firmware baud rate matches `serial_baud`.
+2. The `port` in `radios` matches the actual host device.
+3. The firmware baud rate matches `baud` in `radios`.
 4. The Wii Remote is paired with the ESP32.
 5. The MQTT broker is running and reachable.
 6. `topic_prefix` matches the topic you are subscribing to.
@@ -497,7 +499,7 @@ Check the following:
 
 Common causes:
 
-- Wrong serial device path.
+- Wrong `port` value in `radios`.
 - ESP32 not detected by the host.
 - USB cable only provides power and not data.
 - The device changed from `/dev/ttyUSB0` to another path after reconnecting.
@@ -506,7 +508,7 @@ Common causes:
 
 This usually means one of the following:
 
-- Baud rate mismatch.
+- Baud rate mismatch between `baud` in `radios` and the firmware.
 - Firmware output is corrupted.
 - Another device is using the same serial adapter unexpectedly.
 
@@ -550,7 +552,8 @@ Check that:
 - The application currently provides dedicated MQTT topics for button events, connection state, battery level, and heartbeat messages.
 - Every firmware message is also forwarded to an events JSON MQTT topic.
 - Motion, rumble, LED control, and inbound command topics are not yet implemented in the add-on.
-- The firmware and add-on currently assume a simple controller identifier model, with topics typically published under `wiimote/1/...`.
+- Each ESP32 radio supports one paired Wii Remote with ESP32Wiimote.
+- Multiple Wii Remotes on one host require multiple ESP32 radios and multiple add-on instances with distinct `controller_id` values.
 
 ## Recommended Validation Checklist
 

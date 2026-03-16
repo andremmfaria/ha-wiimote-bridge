@@ -4,8 +4,8 @@ from wiimote_bridge.core import handlers
 def test_handle_message_routes_button(monkeypatch):
     called = {}
 
-    def fake_publish_event_message(client, topic_prefix, msg):
-        called["events"] = (topic_prefix, msg)
+    def fake_publish_event_message(client, topic_prefix, wiimote_id, msg):
+        called["events"] = (topic_prefix, wiimote_id, msg)
 
     def fake_publish_button(client, topic_prefix, wiimote_id, button, down):
         called["button"] = (topic_prefix, wiimote_id, button, down)
@@ -15,17 +15,17 @@ def test_handle_message_routes_button(monkeypatch):
 
     msg = {"type": "btn", "wiimote": 2, "btn": "A", "down": True}
 
-    handlers.handle_message(object(), "wiimote", msg)
+    handlers.handle_message(object(), "wiimote", 7, msg)
 
-    assert called["events"] == ("wiimote", msg)
-    assert called["button"] == ("wiimote", 2, "A", True)
+    assert called["events"] == ("wiimote", 7, msg)
+    assert called["button"] == ("wiimote", 7, "A", True)
 
 
 def test_handle_message_routes_status(monkeypatch):
     called = {}
 
-    def fake_publish_event_message(client, topic_prefix, msg):
-        called["events"] = (topic_prefix, msg)
+    def fake_publish_event_message(client, topic_prefix, wiimote_id, msg):
+        called["events"] = (topic_prefix, wiimote_id, msg)
 
     def fake_publish_connected(client, topic_prefix, wiimote_id, connected):
         called["status"] = (topic_prefix, wiimote_id, connected)
@@ -35,18 +35,18 @@ def test_handle_message_routes_status(monkeypatch):
 
     msg = {"type": "status", "wiimote": 1, "connected": False}
 
-    handlers.handle_message(object(), "wiimote", msg)
+    handlers.handle_message(object(), "wiimote", 3, msg)
 
-    assert called["events"] == ("wiimote", msg)
-    assert called["status"] == ("wiimote", 1, False)
+    assert called["events"] == ("wiimote", 3, msg)
+    assert called["status"] == ("wiimote", 3, False)
 
 
 def test_handle_message_routes_heartbeat(monkeypatch):
     called = {}
     msg = {"type": "heartbeat", "wiimote": 3, "battery": 80}
 
-    def fake_publish_event_message(client, topic_prefix, payload):
-        called["events"] = (topic_prefix, payload)
+    def fake_publish_event_message(client, topic_prefix, wiimote_id, payload):
+        called["events"] = (topic_prefix, wiimote_id, payload)
 
     def fake_publish_heartbeat(client, topic_prefix, wiimote_id, payload):
         called["heartbeat"] = (topic_prefix, wiimote_id, payload)
@@ -54,18 +54,18 @@ def test_handle_message_routes_heartbeat(monkeypatch):
     monkeypatch.setattr(handlers, "publish_event_message", fake_publish_event_message)
     monkeypatch.setattr(handlers, "publish_heartbeat", fake_publish_heartbeat)
 
-    handlers.handle_message(object(), "wiimote", msg)
+    handlers.handle_message(object(), "wiimote", 5, msg)
 
-    assert called["events"] == ("wiimote", msg)
-    assert called["heartbeat"] == ("wiimote", 3, msg)
+    assert called["events"] == ("wiimote", 5, msg)
+    assert called["heartbeat"] == ("wiimote", 5, msg)
 
 
 def test_handle_message_routes_battery(monkeypatch):
     called = {}
     msg = {"type": "battery", "wiimote": 4, "level": 92}
 
-    def fake_publish_event_message(client, topic_prefix, payload):
-        called["events"] = (topic_prefix, payload)
+    def fake_publish_event_message(client, topic_prefix, wiimote_id, payload):
+        called["events"] = (topic_prefix, wiimote_id, payload)
 
     def fake_publish_battery(client, topic_prefix, wiimote_id, level):
         called["battery"] = (topic_prefix, wiimote_id, level)
@@ -73,7 +73,7 @@ def test_handle_message_routes_battery(monkeypatch):
     monkeypatch.setattr(handlers, "publish_event_message", fake_publish_event_message)
     monkeypatch.setattr(handlers, "publish_battery", fake_publish_battery)
 
-    handlers.handle_message(object(), "wiimote", msg)
+    handlers.handle_message(object(), "wiimote", 8, msg)
 
-    assert called["events"] == ("wiimote", msg)
-    assert called["battery"] == ("wiimote", 4, 92)
+    assert called["events"] == ("wiimote", 8, msg)
+    assert called["battery"] == ("wiimote", 8, 92)

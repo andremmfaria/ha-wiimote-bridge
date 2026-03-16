@@ -1,10 +1,7 @@
 configuration:
-  serial_port:
-    name: Serieller Port
-    description: Serielles Gerät, das vom ESP32 auf dem Home-Assistant-Host bereitgestellt wird.
-  serial_baud:
-    name: Serielle Baudrate
-    description: Baudrate, die von der ESP32-Firmware verwendet wird.
+  radios:
+    name: Funkmodule
+    description: Liste der ESP32-Funkmodule. Jeder Eintrag muss port, baud und controller_id enthalten.
   mqtt_host:
     name: MQTT-Host
     description: Hostname des MQTT-Brokers, der Wii-Remote-Ereignisse empfängt.
