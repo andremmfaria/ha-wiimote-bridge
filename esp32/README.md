@@ -8,7 +8,7 @@ The firmware acts as the Bluetooth bridge for the project.
 
 Tested with:
 
-- ESP32-WROOM-32 development board ([link](https://www.amazon.co.uk/dp/B0DGLCWR76))
+- ESP32-WROOM-32 development board ([amazon link](https://www.amazon.co.uk/dp/B0DGLCWR76))
 - USB connection to the Home Assistant host
 
 The ESP32 must support **Bluetooth Classic** (not only BLE).
@@ -23,13 +23,13 @@ The ESP32 must support **Bluetooth Classic** (not only BLE).
 
 Using `arduino-cli`:
 
-```
+```shell
 arduino-cli core install esp32:esp32@3.3.7
 ```
 
 Verify installation:
 
-```
+```shell
 arduino-cli core list
 ```
 
@@ -37,13 +37,13 @@ arduino-cli core list
 
 Install directly from the official repository:
 
-```
+```shell
 arduino-cli lib install ESP32Wiimote
 ```
 
 ## Firmware Location
 
-```
+```text
 esp32/
 └── wiimote-serial-bridge/
     ├── wiimote-serial-bridge.ino
@@ -60,7 +60,7 @@ esp32/
 
 From the firmware directory:
 
-```
+```shell
 arduino-cli compile --fqbn esp32:esp32:esp32 .
 ```
 
@@ -68,7 +68,7 @@ arduino-cli compile --fqbn esp32:esp32:esp32 .
 
 Connect the ESP32 via USB and run:
 
-```
+```shell
 arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:esp32 .
 ```
 
@@ -79,7 +79,7 @@ Replace `/dev/ttyUSB0` with your serial device if necessary.
 The firmware sets the ESP32Wiimote runtime logging level via public API:
 
 ```cpp
-ESP32Wiimote::setLogLevel(WIIMOTE_LOG_WARNING);
+ESP32Wiimote::setLogLevel(kWiimoteLogWarning);
 ```
 
 This keeps library output to errors and warnings only (no `[INFO]` lines).
@@ -92,7 +92,7 @@ This keeps library output to errors and warnings only (no `[INFO]` lines).
 
 Once connected, you should see:
 
-```
+```json
 {"type":"status","wiimote":1,"connected":true}
 ```
 
@@ -102,7 +102,7 @@ The firmware emits JSON lines over serial.
 
 Example:
 
-```
+```json
 {"type":"status","device":"esp32","ready":true}
 {"type":"status","wiimote":1,"connected":true}
 {"type":"btn","wiimote":1,"btn":"A","down":true}
@@ -115,7 +115,7 @@ These messages are consumed by the Home Assistant add-on and converted to MQTT t
 
 Every 10 seconds the firmware emits:
 
-```
+```json
 {"type":"heartbeat","device":"esp32","wiimote":1,"connected":true}
 ```
 
@@ -125,7 +125,7 @@ This allows the Home Assistant bridge to detect stale connections.
 
 Supported buttons:
 
-```
+```text
 A
 B
 ONE
@@ -141,7 +141,7 @@ RIGHT
 
 ## Example Serial Monitor
 
-```
+```json
 {"type":"status","wiimote":1,"connected":true}
 {"type":"btn","wiimote":1,"btn":"A","down":true}
 {"type":"btn","wiimote":1,"btn":"A","down":false}
@@ -156,4 +156,3 @@ Planned improvements:
 - accelerometer events
 - rumble control
 - LED control
-- multiple Wiimotes

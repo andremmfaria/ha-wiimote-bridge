@@ -29,6 +29,8 @@ The add-on is packaged as a Home Assistant custom repository and publishes pre-b
 - MQTT interface compatible with many systems
 - Clean JSON protocol between firmware and HA
 - Works with standard Wii Remotes
+- Dedicated MQTT topics for button, connection, heartbeat, and battery
+- Passthrough MQTT events topics for all valid firmware JSON messages
 
 ## Repository Structure
 
@@ -97,6 +99,10 @@ Then:
 wiimote/1/button/A
 wiimote/1/button/B
 wiimote/1/button/PLUS
+wiimote/1/status/connected
+wiimote/1/status/heartbeat
+wiimote/1/status/battery
+wiimote/1/events/status
 ```
 
 Payloads:
@@ -132,7 +138,8 @@ Other ESP32 boards should work as long as they support **Bluetooth Classic**.
 
 ## Known Limitations
 
-- Only button events are currently supported
+- No accelerometer or nunchuk MQTT topics yet
+- No command channel from Home Assistant back to firmware yet
 - Motion / accelerometer support will be added later
 - Only one Wii Remote supported in the current firmware
 

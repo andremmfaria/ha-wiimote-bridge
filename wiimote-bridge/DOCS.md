@@ -195,7 +195,7 @@ When the add-on starts, `run.sh` reads your Home Assistant options and prints a 
 
 The Python application then logs its own runtime initialization. Under normal conditions, startup looks similar to this:
 
-```text
+```log
 Starting WiiMote Bridge
 Application log level: info
 Serial port: /dev/ttyUSB0
@@ -228,6 +228,7 @@ Supported incoming message types:
 - `btn`
 - `status`
 - `heartbeat`
+- `battery`
 
 ## MQTT Topics Published by the Add-on
 
@@ -296,6 +297,8 @@ Payload:
 87
 ```
 
+With the current ESP32Wiimote library, battery values are forwarded as raw integer levels from the firmware (commonly `0-255`).
+
 This topic is published with `retain=true` so the latest known battery value remains available to subscribers.
 
 ### Heartbeat Messages
@@ -340,7 +343,7 @@ These event topics carry the original JSON payload from the firmware.
 
 Typical serial messages from the ESP32 look like this:
 
-```text
+```json
 {"type":"status","device":"esp32","ready":true}
 {"type":"status","wiimote":1,"connected":true}
 {"type":"btn","wiimote":1,"btn":"A","down":true}
@@ -355,6 +358,7 @@ The add-on currently maps them like this:
 | `btn` | Publishes `ON` or `OFF` to a button topic |
 | `status` with `connected` | Publishes `true` or `false` to the connection topic |
 | `heartbeat` | Publishes the full JSON object to the heartbeat topic |
+| `battery` | Publishes battery level to the battery topic |
 | any message | Publishes the original JSON object to an events topic |
 
 Firmware `ready`, `waiting`, and `note` messages are available through the events topics.
@@ -431,7 +435,7 @@ Behavior by level:
 
 Normal startup:
 
-```text
+```log
 INFO wiimote_bridge.core.run: Starting WiiMote Bridge application
 INFO wiimote_bridge.transport.mqtt_client: Connected to MQTT broker at core-mosquitto:1883
 INFO wiimote_bridge.transport.serial_reader: Opening serial port /dev/ttyUSB0 at 115200 baud
@@ -439,27 +443,27 @@ INFO wiimote_bridge.transport.serial_reader: Opening serial port /dev/ttyUSB0 at
 
 Normal event flow:
 
-```text
+```log
 INFO wiimote_bridge.core.run: SERIAL {"type":"btn","wiimote":1,"btn":"A","down":true}
 INFO wiimote_bridge.transport.mqtt_client: MQTT wiimote/1/button/A -> ON
 ```
 
 Serial problems:
 
-```text
+```log
 ERROR wiimote_bridge.core.run: Serial open failed: ...
 ERROR wiimote_bridge.core.run: Serial error: ...
 ```
 
 Malformed input:
 
-```text
+```log
 WARNING wiimote_bridge.core.run: Skipping invalid JSON line
 ```
 
 Shutdown:
 
-```text
+```log
 INFO wiimote_bridge.core.run: Received signal 15, shutting down
 INFO wiimote_bridge.core.run: MQTT client disconnected
 ```
@@ -523,7 +527,7 @@ Verify:
 
 During temporary MQTT outages or reconnects, warning lines like the following are expected:
 
-```text
+```log
 WARNING wiimote_bridge.transport.mqtt_client: Skipping MQTT publish while client is disconnected: ...
 ```
 

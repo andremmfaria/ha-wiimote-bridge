@@ -125,7 +125,7 @@ After saving configuration:
 
 Expected startup output includes a shell summary and application logs such as:
 
-```text
+```log
 Starting WiiMote Bridge
 Application log level: info
 Serial port: /dev/ttyUSB0
@@ -144,7 +144,7 @@ Press `1 + 2` on the Wii Remote while the firmware and add-on are running.
 
 Once connected, you should see serial lines such as:
 
-```text
+```log
 SERIAL {"type":"status","wiimote":1,"connected":true}
 SERIAL {"type":"btn","wiimote":1,"btn":"A","down":true}
 ```

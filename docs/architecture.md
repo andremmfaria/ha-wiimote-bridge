@@ -82,7 +82,8 @@ Its responsibilities are:
 - open the configured serial device
 - decode incoming serial lines
 - parse JSON objects
-- convert supported message types into MQTT topics
+- forward every valid JSON message to MQTT events topics
+- map supported message types into convenience MQTT topics
 - recover from transient serial failures
 
 The add-on currently handles these serial message types:
@@ -90,13 +91,13 @@ The add-on currently handles these serial message types:
 - `btn`
 - `status` with `connected`
 - `heartbeat`
+- `battery`
 
-It currently ignores other emitted firmware message fields such as:
+Some firmware fields do not have a dedicated convenience topic yet, but are still available via events topics:
 
 - `status` with `ready`
 - `status` with `waiting`
 - `status` with pairing notes
-- `battery`
 
 ### MQTT Layer
 
@@ -109,6 +110,9 @@ Published topics currently include:
 - `wiimote/1/button/PLUS`
 - `wiimote/1/status/connected`
 - `wiimote/1/status/heartbeat`
+- `wiimote/1/status/battery`
+- `wiimote/1/events/status`
+- `wiimote/device/esp32/events/status`
 
 This makes the project usable not only from Home Assistant, but also from:
 
@@ -216,7 +220,7 @@ The firmware emits prompt and waiting-style status messages such as:
 {"type":"status","wiimote":1,"connected":false,"waiting":true}
 ```
 
-These are visible in serial logs but are not currently mapped to MQTT topics.
+These are visible in serial logs and forwarded to MQTT events topics.
 
 ### Wii Remote Disconnect
 
@@ -250,14 +254,12 @@ Today the full system is best described as:
 - button-event publishing
 - connection-state publishing
 - heartbeat forwarding
-- battery emitted by firmware but not yet published by the add-on
+- battery forwarding and battery topic publishing
 
 Not yet implemented end to end:
 
 - accelerometer MQTT topics
-- battery MQTT topics
 - commands from Home Assistant back to firmware
-- rumble control
 - LED control
 - explicit multi-controller routing
 
@@ -270,6 +272,5 @@ Likely next protocol and architecture improvements include:
 - battery topic publishing in the add-on
 - motion and accelerometer events
 - bidirectional command topics
-- rumble support
 - LED state control
 - support for more than one connected Wii Remote

@@ -176,7 +176,7 @@ Fields:
 | --- | --- |
 | `type` | Always `battery` |
 | `wiimote` | Controller identifier |
-| `level` | Battery percentage-like level from the library |
+| `level` | Raw battery level from the library (commonly `0-255`) |
 
 ## Add-on Mapping
 
@@ -218,7 +218,6 @@ Any system capable of reading line-delimited JSON over serial can consume it.
 Likely future additions include:
 
 - accelerometer events
-- battery forwarding through the add-on
 - command messages from the bridge to firmware
 - rumble control
 - LED control

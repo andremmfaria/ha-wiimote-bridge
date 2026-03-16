@@ -12,7 +12,7 @@ The firmware does three main jobs:
 
 The current firmware sends line-delimited JSON over the serial port. Depending on state, you can see messages such as:
 
-```text
+```json
 {"type":"status","device":"esp32","ready":true}
 {"type":"status","wiimote":1,"connected":false,"note":"press_1_and_2"}
 {"type":"status","wiimote":1,"connected":false,"waiting":true}
@@ -22,7 +22,7 @@ The current firmware sends line-delimited JSON over the serial port. Depending o
 {"type":"battery","wiimote":1,"level":87}
 ```
 
-The add-on currently forwards button events, connection status, and heartbeat messages to MQTT. Battery messages are emitted by the firmware but are not yet published by the add-on.
+The add-on forwards all valid firmware messages to MQTT events topics and also publishes dedicated button, connection, heartbeat, and battery topics.
 
 ## Tested Environment
 
@@ -52,6 +52,13 @@ The firmware lives here:
 esp32/
     wiimote-serial-bridge/
         wiimote-serial-bridge.ino
+        include/
+            buttons.h
+            messages.h
+            state.h
+        src/
+            buttons.cpp
+            messages.cpp
 ```
 
 Compile and upload from:
@@ -196,7 +203,7 @@ sudo python3 -m serial.tools.miniterm /dev/ttyUSB0 115200
 
 Expected startup output is typically:
 
-```text
+```json
 {"type":"status","device":"esp32","ready":true}
 {"type":"status","wiimote":1,"connected":false,"note":"press_1_and_2"}
 {"type":"status","wiimote":1,"connected":false,"waiting":true}
@@ -212,7 +219,7 @@ With the serial monitor open:
 
 Expected output once connected:
 
-```text
+```json
 {"type":"status","wiimote":1,"connected":true}
 {"type":"btn","wiimote":1,"btn":"A","down":true}
 {"type":"btn","wiimote":1,"btn":"A","down":false}
