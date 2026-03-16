@@ -47,10 +47,7 @@ def _parse_radios(raw_value: object) -> tuple[RadioConfig, ...]:
 
     # Most environments pass a JSON string, but Home Assistant/bashio
     # can occasionally provide a single object or an extra-quoted JSON string.
-    if isinstance(radios_data, str):
-        radios_data = json.loads(radios_data)
-
-    if isinstance(radios_data, str):
+    while isinstance(radios_data, str):
         radios_data = json.loads(radios_data)
 
     if isinstance(radios_data, dict):

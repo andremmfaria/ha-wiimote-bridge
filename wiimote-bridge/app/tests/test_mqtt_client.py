@@ -2,13 +2,19 @@ from wiimote_bridge.transport import mqtt_client
 from wiimote_bridge.utils.config import RadioConfig, Settings
 
 
-def test_publish_button_formats_topic_and_payload(monkeypatch):
+def _patch_publish(monkeypatch):
+    """Patch mqtt_publish to capture the single (topic, payload, retain) call."""
     called = {}
 
-    def fake_publish(client, topic, payload, retain=False):
+    def fake_publish(_client, topic, payload, retain=False):
         called["data"] = (topic, payload, retain)
 
     monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+    return called
+
+
+def test_publish_button_formats_topic_and_payload(monkeypatch):
+    called = _patch_publish(monkeypatch)
 
     mqtt_client.publish_button(object(), "wiimote", 1, "A", True)
 
@@ -16,12 +22,7 @@ def test_publish_button_formats_topic_and_payload(monkeypatch):
 
 
 def test_publish_connected_retained(monkeypatch):
-    called = {}
-
-    def fake_publish(client, topic, payload, retain=False):
-        called["data"] = (topic, payload, retain)
-
-    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+    called = _patch_publish(monkeypatch)
 
     mqtt_client.publish_connected(object(), "wiimote", 1, False)
 
@@ -29,12 +30,7 @@ def test_publish_connected_retained(monkeypatch):
 
 
 def test_publish_battery_retained(monkeypatch):
-    called = {}
-
-    def fake_publish(client, topic, payload, retain=False):
-        called["data"] = (topic, payload, retain)
-
-    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+    called = _patch_publish(monkeypatch)
 
     mqtt_client.publish_battery(object(), "wiimote", 2, 87)
 
@@ -42,12 +38,7 @@ def test_publish_battery_retained(monkeypatch):
 
 
 def test_publish_event_message_for_wiimote(monkeypatch):
-    called = {}
-
-    def fake_publish(client, topic, payload, retain=False):
-        called["data"] = (topic, payload, retain)
-
-    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+    called = _patch_publish(monkeypatch)
 
     mqtt_client.publish_event_message(object(), "wiimote", 1, {"type": "status", "wiimote": 1, "waiting": True})
 
@@ -59,12 +50,7 @@ def test_publish_event_message_for_wiimote(monkeypatch):
 
 
 def test_publish_event_message_for_wiimote_normalizes_fixed_id(monkeypatch):
-    called = {}
-
-    def fake_publish(client, topic, payload, retain=False):
-        called["data"] = (topic, payload, retain)
-
-    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+    called = _patch_publish(monkeypatch)
 
     mqtt_client.publish_event_message(object(), "wiimote", 4, {"type": "status", "wiimote": 9, "waiting": True})
 
@@ -76,12 +62,7 @@ def test_publish_event_message_for_wiimote_normalizes_fixed_id(monkeypatch):
 
 
 def test_publish_event_message_for_device(monkeypatch):
-    called = {}
-
-    def fake_publish(client, topic, payload, retain=False):
-        called["data"] = (topic, payload, retain)
-
-    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+    called = _patch_publish(monkeypatch)
 
     mqtt_client.publish_event_message(object(), "wiimote", 6, {"type": "status", "device": "esp32", "ready": True})
 
@@ -93,12 +74,7 @@ def test_publish_event_message_for_device(monkeypatch):
 
 
 def test_publish_heartbeat_normalizes_wiimote_id(monkeypatch):
-    called = {}
-
-    def fake_publish(client, topic, payload, retain=False):
-        called["data"] = (topic, payload, retain)
-
-    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+    called = _patch_publish(monkeypatch)
 
     mqtt_client.publish_heartbeat(
         object(),

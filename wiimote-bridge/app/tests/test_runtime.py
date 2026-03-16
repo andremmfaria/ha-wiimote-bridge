@@ -46,6 +46,17 @@ class _FakeSerial:
         self.closed = True
 
 
+class _FakeThread:
+    def __init__(self, target, args, daemon, name):
+        pass
+
+    def start(self):
+        pass
+
+    def join(self, timeout=None):
+        pass
+
+
 def _patch_signal_handlers(monkeypatch):
     handlers = {}
 
@@ -56,6 +67,14 @@ def _patch_signal_handlers(monkeypatch):
     return handlers
 
 
+def _patch_run_env(monkeypatch, fake_client, thread_class=None, configure_logging=None):
+    """Apply the standard monkeypatches required by every run() test."""
+    monkeypatch.setattr(run_module.threading, "Thread", thread_class or _FakeThread)
+    monkeypatch.setattr(run_module, "connect_mqtt", lambda _settings: fake_client)
+    monkeypatch.setattr(run_module, "configure_logging", configure_logging or (lambda level: level))
+    _patch_signal_handlers(monkeypatch)
+
+
 # ---------------------------------------------------------------------------
 # run() tests — threading behaviour
 # ---------------------------------------------------------------------------
@@ -64,25 +83,16 @@ def test_run_spawns_thread_per_radio(monkeypatch):
     fake_client = _FakeClient()
     spawned = []
 
-    class FakeThread:
+    class _CapturingThread(_FakeThread):
         def __init__(self, target, args, daemon, name):
             spawned.append({"target": target, "args": args, "name": name})
 
-        def start(self):
-            pass
-
-        def join(self, timeout=None):
-            pass
-
-    monkeypatch.setattr(run_module.threading, "Thread", FakeThread)
+    _patch_run_env(monkeypatch, fake_client, thread_class=_CapturingThread)
     monkeypatch.setenv(
         "RADIOS",
         '[{"port":"/dev/ttyUSB0","baud":115200,"controller_id":1},'
         '{"port":"/dev/ttyUSB1","baud":115200,"controller_id":2}]',
     )
-    monkeypatch.setattr(run_module, "connect_mqtt", lambda _settings: fake_client)
-    monkeypatch.setattr(run_module, "configure_logging", lambda level: level)
-    _patch_signal_handlers(monkeypatch)
 
     result = run_module.run()
 
@@ -100,30 +110,17 @@ def test_run_publishes_discovery_for_all_radios(monkeypatch):
     fake_client = _FakeClient()
     called = {}
 
-    class FakeThread:
-        def __init__(self, target, args, daemon, name):
-            pass
-
-        def start(self):
-            pass
-
-        def join(self, timeout=None):
-            pass
-
-    monkeypatch.setattr(run_module.threading, "Thread", FakeThread)
+    _patch_run_env(monkeypatch, fake_client)
     monkeypatch.setenv(
         "RADIOS",
         '[{"port":"/dev/ttyUSB0","baud":115200,"controller_id":1},'
         '{"port":"/dev/ttyUSB1","baud":115200,"controller_id":4}]',
     )
-    monkeypatch.setattr(run_module, "connect_mqtt", lambda _settings: fake_client)
-    monkeypatch.setattr(run_module, "configure_logging", lambda level: level)
 
     def fake_publish_discovery_configs(_client, _topic_prefix, wiimote_ids):
         called["args"] = (_topic_prefix, list(wiimote_ids))
 
     monkeypatch.setattr(run_module, "publish_discovery_configs", fake_publish_discovery_configs)
-    _patch_signal_handlers(monkeypatch)
 
     result = run_module.run()
 
@@ -135,26 +132,13 @@ def test_run_skips_discovery_when_disabled(monkeypatch):
     fake_client = _FakeClient()
     called = {"count": 0}
 
-    class FakeThread:
-        def __init__(self, target, args, daemon, name):
-            pass
-
-        def start(self):
-            pass
-
-        def join(self, timeout=None):
-            pass
-
-    monkeypatch.setattr(run_module.threading, "Thread", FakeThread)
+    _patch_run_env(monkeypatch, fake_client)
     monkeypatch.setenv("DISCOVER_ENABLED", "false")
-    monkeypatch.setattr(run_module, "connect_mqtt", lambda _settings: fake_client)
-    monkeypatch.setattr(run_module, "configure_logging", lambda level: level)
 
     def fake_publish_discovery_configs(_client, _topic_prefix, wiimote_ids):
         called["count"] += 1
 
     monkeypatch.setattr(run_module, "publish_discovery_configs", fake_publish_discovery_configs)
-    _patch_signal_handlers(monkeypatch)
 
     result = run_module.run()
 
@@ -166,26 +150,12 @@ def test_run_uses_configured_log_level(monkeypatch):
     fake_client = _FakeClient()
     configured = {}
 
-    class FakeThread:
-        def __init__(self, target, args, daemon, name):
-            pass
-
-        def start(self):
-            pass
-
-        def join(self, timeout=None):
-            pass
-
-    monkeypatch.setattr(run_module.threading, "Thread", FakeThread)
-    monkeypatch.setenv("LOG_LEVEL", "warning")
-    monkeypatch.setattr(run_module, "connect_mqtt", lambda _settings: fake_client)
-
     def fake_configure_logging(level_name):
         configured["level"] = level_name
         return level_name
 
-    monkeypatch.setattr(run_module, "configure_logging", fake_configure_logging)
-    _patch_signal_handlers(monkeypatch)
+    monkeypatch.setenv("LOG_LEVEL", "warning")
+    _patch_run_env(monkeypatch, fake_client, configure_logging=fake_configure_logging)
 
     result = run_module.run()
 
