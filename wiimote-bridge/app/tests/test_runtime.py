@@ -70,7 +70,11 @@ def _patch_signal_handlers(monkeypatch):
 def _patch_run_env(monkeypatch, fake_client, thread_class=None, configure_logging=None):
     """Apply the standard monkeypatches required by every run() test."""
     monkeypatch.setattr(run_module.threading, "Thread", thread_class or _FakeThread)
-    monkeypatch.setattr(run_module, "connect_mqtt", lambda _settings: fake_client)
+    monkeypatch.setattr(
+        run_module,
+        "connect_mqtt_with_discovery",
+        lambda _settings, **_kwargs: fake_client,
+    )
     monkeypatch.setattr(run_module, "configure_logging", configure_logging or (lambda level: level))
     _patch_signal_handlers(monkeypatch)
 
@@ -106,44 +110,54 @@ def test_run_spawns_thread_per_radio(monkeypatch):
     assert fake_client.disconnected is True
 
 
-def test_run_publishes_discovery_for_all_radios(monkeypatch):
+def test_run_passes_discovery_configuration(monkeypatch):
     fake_client = _FakeClient()
     called = {}
 
-    _patch_run_env(monkeypatch, fake_client)
+    monkeypatch.setattr(run_module.threading, "Thread", _FakeThread)
+    monkeypatch.setattr(run_module, "configure_logging", lambda level: level)
+    _patch_signal_handlers(monkeypatch)
     monkeypatch.setenv(
         "RADIOS",
         '[{"port":"/dev/ttyUSB0","baud":115200,"controller_id":1},'
         '{"port":"/dev/ttyUSB1","baud":115200,"controller_id":4}]',
     )
 
-    def fake_publish_discovery_configs(_client, _topic_prefix, wiimote_ids):
-        called["args"] = (_topic_prefix, list(wiimote_ids))
+    def fake_connect(_settings, **kwargs):
+        called["kwargs"] = kwargs
+        return fake_client
 
-    monkeypatch.setattr(run_module, "publish_discovery_configs", fake_publish_discovery_configs)
+    monkeypatch.setattr(run_module, "connect_mqtt_with_discovery", fake_connect)
 
     result = run_module.run()
 
     assert result == 0
-    assert called["args"] == ("wiimote", [1, 4])
+    assert called["kwargs"] == {
+        "discovery_enabled": True,
+        "discovery_topic_prefix": "wiimote",
+        "discovery_wiimote_ids": (1, 4),
+    }
 
 
 def test_run_skips_discovery_when_disabled(monkeypatch):
     fake_client = _FakeClient()
-    called = {"count": 0}
+    called = {}
 
-    _patch_run_env(monkeypatch, fake_client)
+    monkeypatch.setattr(run_module.threading, "Thread", _FakeThread)
+    monkeypatch.setattr(run_module, "configure_logging", lambda level: level)
+    _patch_signal_handlers(monkeypatch)
     monkeypatch.setenv("DISCOVER_ENABLED", "false")
 
-    def fake_publish_discovery_configs(_client, _topic_prefix, wiimote_ids):
-        called["count"] += 1
+    def fake_connect(_settings, **kwargs):
+        called["kwargs"] = kwargs
+        return fake_client
 
-    monkeypatch.setattr(run_module, "publish_discovery_configs", fake_publish_discovery_configs)
+    monkeypatch.setattr(run_module, "connect_mqtt_with_discovery", fake_connect)
 
     result = run_module.run()
 
     assert result == 0
-    assert called["count"] == 0
+    assert called["kwargs"]["discovery_enabled"] is False
 
 
 def test_run_uses_configured_log_level(monkeypatch):

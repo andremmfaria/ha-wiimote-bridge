@@ -126,6 +126,40 @@ ON
 OFF
 ```
 
+Discovery publish behavior:
+
+- discovery config topics are published after MQTT connection is confirmed
+- discovery config topics are republished after MQTT reconnects
+- discovery config payloads are retained and idempotent, so republishing updates the same entities
+
+If button/status events are visible in MQTT but entities are missing in Home Assistant, check add-on logs for discovery publication lines and verify retained discovery topics on the broker.
+
+## Discovery Validation (Retained Topics)
+
+Use this checklist after startup and after reconnect tests.
+
+1. Subscribe to retained discovery topics from a shell on your MQTT host:
+
+```bash
+mosquitto_sub -h <broker-host> -p <broker-port> -u <user> -P <pass> -v -R -t 'homeassistant/+/wiimote_+/+/config'
+```
+
+2. Confirm retained config topics exist for each configured controller ID:
+
+- one `connected` binary sensor topic
+- one `battery` sensor topic
+- one button binary sensor topic per supported button
+
+3. Confirm payloads reference expected operational topics:
+
+- `<topic_prefix>/<controller_id>/status/connected`
+- `<topic_prefix>/<controller_id>/status/battery`
+- `<topic_prefix>/<controller_id>/button/<BUTTON>`
+
+4. Restart Home Assistant (not the add-on) and confirm entities reappear from retained config topics.
+
+5. Restart MQTT broker and confirm add-on logs show discovery republish after reconnect.
+
 ## Example Home Assistant Automation
 
 ```yaml
@@ -158,6 +192,25 @@ Other ESP32 boards should work as long as they support **Bluetooth Classic**.
 - Each ESP32 radio can pair with only one Wii Remote when using ESP32Wiimote
 - To use multiple Wii Remotes, connect multiple ESP32 radios and add one entry per radio to `radios` in the single add-on instance
 
+## Operational Model
+
+The bridge supports both Home Assistant entities and raw MQTT-topic automations.
+
+Entity-first usage:
+
+- use discovered entities when you want Home Assistant-native device/entity UI, diagnostics, and state history
+- includes connectivity, battery, and per-button binary sensors
+
+Raw topic usage:
+
+- use direct MQTT triggers when you need low-level payload handling or custom routing
+- button transitions: `<topic_prefix>/<controller_id>/button/<BUTTON>`
+- connection state: `<topic_prefix>/<controller_id>/status/connected`
+- battery state: `<topic_prefix>/<controller_id>/status/battery`
+- passthrough firmware events: `<topic_prefix>/<controller_id>/events/<type>` and `<topic_prefix>/device/<device>/events/<type>`
+
+Button entities are intentionally kept as binary sensors because they map cleanly to press/release transitions (`ON`/`OFF`) and enable straightforward entity-based automations while preserving raw topic access for advanced workflows.
+
 ## Why This Exists
 
 Home Assistant does not natively support Wii Remotes.
@@ -170,7 +223,6 @@ This project repurposes them using inexpensive ESP32 hardware.
 - accelerometer support
 - rumble control from Home Assistant
 - LED control
-- MQTT auto-discovery
 
 ## Release Process
 
@@ -187,6 +239,8 @@ The tag triggers GitHub Actions to:
 - build architecture-specific images for Home Assistant
 - publish them to GHCR
 - create a GitHub release
+
+Before creating a release tag, run the regression checklist in `docs/release-checklist.md`.
 
 ## License
 

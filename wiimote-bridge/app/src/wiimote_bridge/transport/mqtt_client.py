@@ -25,6 +25,24 @@ def _warn_publish_issue(message: str, *args: Any) -> None:
 
 
 def connect_mqtt(settings: Settings) -> mqtt.Client:
+    return connect_mqtt_with_discovery(
+        settings,
+        discovery_enabled=False,
+        discovery_topic_prefix=settings.topic_prefix,
+        discovery_wiimote_ids=(),
+    )
+
+
+def connect_mqtt_with_discovery(
+    settings: Settings,
+    *,
+    discovery_enabled: bool,
+    discovery_topic_prefix: str,
+    discovery_wiimote_ids: Iterable[int],
+    discovery_prefix: str = "homeassistant",
+) -> mqtt.Client:
+    wiimote_ids = tuple(int(wiimote_id) for wiimote_id in discovery_wiimote_ids)
+
     client = mqtt.Client(
         callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
         client_id="wiimote-serial-bridge",
@@ -49,6 +67,37 @@ def connect_mqtt(settings: Settings) -> mqtt.Client:
 
         if reason_code_value == 0:
             LOGGER.info("Connected to MQTT broker at %s:%s", settings.mqtt_host, settings.mqtt_port)
+            if not discovery_enabled:
+                LOGGER.info("MQTT discovery publishing is disabled")
+                return
+
+            if not wiimote_ids:
+                LOGGER.warning("MQTT discovery enabled but no controller IDs are configured")
+                return
+
+            expected_entities = len(wiimote_ids) * (2 + len(WIIMOTE_BUTTONS))
+            LOGGER.info(
+                "Publishing MQTT discovery for %s controller(s); expecting %s entity configs",
+                len(wiimote_ids),
+                expected_entities,
+            )
+            result = publish_discovery_configs(
+                client,
+                discovery_topic_prefix,
+                wiimote_ids,
+                discovery_prefix=discovery_prefix,
+            )
+            if result["failed"] > 0:
+                LOGGER.warning(
+                    "MQTT discovery publish completed with failures: %s/%s entities failed",
+                    result["failed"],
+                    result["entities"],
+                )
+            else:
+                LOGGER.info(
+                    "MQTT discovery publish completed successfully: %s entities announced",
+                    result["entities"],
+                )
             return
 
         LOGGER.warning("MQTT connection failed: %s", mqtt.error_string(reason_code_value))
@@ -150,9 +199,27 @@ def publish_discovery_configs(
     topic_prefix: str,
     wiimote_ids: Iterable[int],
     discovery_prefix: str = "homeassistant",
-) -> None:
+) -> dict[str, int]:
+    controllers = 0
+    entities = 0
+    failed = 0
+
     for wiimote_id in wiimote_ids:
-        _publish_controller_discovery(client, topic_prefix, int(wiimote_id), discovery_prefix)
+        announced, failed_for_controller = _publish_controller_discovery(
+            client,
+            topic_prefix,
+            int(wiimote_id),
+            discovery_prefix,
+        )
+        controllers += 1
+        entities += announced
+        failed += failed_for_controller
+
+    return {
+        "controllers": controllers,
+        "entities": entities,
+        "failed": failed,
+    }
 
 
 def _publish_controller_discovery(
@@ -160,7 +227,10 @@ def _publish_controller_discovery(
     topic_prefix: str,
     wiimote_id: int,
     discovery_prefix: str,
-) -> None:
+) -> tuple[int, int]:
+    announced = 0
+    failed = 0
+
     device_id = f"wiimote_bridge_{wiimote_id}"
     device_name = f"WiiMote {wiimote_id}"
     object_prefix = f"wiimote_{wiimote_id}"
@@ -169,7 +239,6 @@ def _publish_controller_discovery(
         "name": device_name,
         "manufacturer": "Nintendo",
         "model": "Wii Remote",
-        "via_device": "wiimote_bridge",
     }
 
     connected_cfg = {
@@ -182,14 +251,17 @@ def _publish_controller_discovery(
         "entity_category": "diagnostic",
         "device": device,
     }
-    _publish_discovery_entity(
+    if _publish_discovery_entity(
         client,
         discovery_prefix,
         "binary_sensor",
         object_prefix,
         "connected",
         connected_cfg,
-    )
+    ):
+        announced += 1
+    else:
+        failed += 1
 
     battery_cfg = {
         "name": "Battery",
@@ -201,14 +273,17 @@ def _publish_controller_discovery(
         "entity_category": "diagnostic",
         "device": device,
     }
-    _publish_discovery_entity(
+    if _publish_discovery_entity(
         client,
         discovery_prefix,
         "sensor",
         object_prefix,
         "battery",
         battery_cfg,
-    )
+    ):
+        announced += 1
+    else:
+        failed += 1
 
     for button in WIIMOTE_BUTTONS:
         button_cfg = {
@@ -217,17 +292,21 @@ def _publish_controller_discovery(
             "state_topic": f"{topic_prefix}/{wiimote_id}/button/{button}",
             "payload_on": "ON",
             "payload_off": "OFF",
-            "device_class": "power",
             "device": device,
         }
-        _publish_discovery_entity(
+        if _publish_discovery_entity(
             client,
             discovery_prefix,
             "binary_sensor",
             object_prefix,
             f"button_{button.lower()}",
             button_cfg,
-        )
+        ):
+            announced += 1
+        else:
+            failed += 1
+
+    return announced, failed
 
 
 def _publish_discovery_entity(
@@ -237,7 +316,7 @@ def _publish_discovery_entity(
     object_prefix: str,
     object_id: str,
     config_payload: dict[str, Any],
-) -> None:
+) -> bool:
     topic = f"{discovery_prefix}/{component}/{object_prefix}/{object_id}/config"
     payload = json.dumps(config_payload, separators=(",", ":"))
-    mqtt_publish(client, topic, payload, retain=True)
+    return mqtt_publish(client, topic, payload, retain=True)

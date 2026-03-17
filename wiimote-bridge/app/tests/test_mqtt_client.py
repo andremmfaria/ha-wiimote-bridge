@@ -99,13 +99,15 @@ def test_publish_discovery_configs_publishes_connected_battery_and_buttons(monke
 
     monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
 
-    mqtt_client.publish_discovery_configs(object(), "wiimote", [7])
+    result = mqtt_client.publish_discovery_configs(object(), "wiimote", [7])
 
     # 1 connected + 1 battery + 11 button entities
     assert len(published) == 13
+    assert result == {"controllers": 1, "entities": 13, "failed": 0}
     assert published[0][0] == "homeassistant/binary_sensor/wiimote_7/connected/config"
     assert published[0][2] is True
     assert '"state_topic":"wiimote/7/status/connected"' in published[0][1]
+    assert '"via_device"' not in published[0][1]
 
     battery_entry = next(x for x in published if x[0] == "homeassistant/sensor/wiimote_7/battery/config")
     assert battery_entry[2] is True
@@ -127,12 +129,24 @@ def test_publish_discovery_configs_respects_custom_discovery_prefix(monkeypatch)
 
     monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
 
-    mqtt_client.publish_discovery_configs(object(), "wiimote", [1], discovery_prefix="ha")
+    result = mqtt_client.publish_discovery_configs(object(), "wiimote", [1], discovery_prefix="ha")
 
     assert published[0][0].startswith("ha/")
+    assert result["entities"] == 13
 
 
-def test_connect_mqtt_sets_auth_and_starts_loop(monkeypatch):
+def test_publish_discovery_configs_counts_failures(monkeypatch):
+    def fake_publish(client, topic, payload, retain=False):
+        return not topic.endswith("button_a/config")
+
+    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+
+    result = mqtt_client.publish_discovery_configs(object(), "wiimote", [1])
+
+    assert result == {"controllers": 1, "entities": 12, "failed": 1}
+
+
+def test_connect_mqtt_with_discovery_sets_auth_and_starts_loop(monkeypatch):
     calls = {}
 
     class FakeClient:
@@ -162,7 +176,12 @@ def test_connect_mqtt_sets_auth_and_starts_loop(monkeypatch):
         topic_prefix="wiimote",
     )
 
-    client = mqtt_client.connect_mqtt(settings)
+    client = mqtt_client.connect_mqtt_with_discovery(
+        settings,
+        discovery_enabled=True,
+        discovery_topic_prefix="wiimote",
+        discovery_wiimote_ids=(1,),
+    )
 
     assert client is not None
     assert calls["init"] == (
@@ -201,10 +220,59 @@ def test_connect_mqtt_on_disconnect_accepts_v2_signature(monkeypatch):
         topic_prefix="wiimote",
     )
 
-    client = mqtt_client.connect_mqtt(settings)
+    client = mqtt_client.connect_mqtt_with_discovery(
+        settings,
+        discovery_enabled=False,
+        discovery_topic_prefix="wiimote",
+        discovery_wiimote_ids=(),
+    )
 
     # Paho v2 callback shape: (client, userdata, disconnect_flags, reason_code, properties)
     client.on_disconnect(client, None, None, 1, None)
+
+
+def test_connect_mqtt_on_connect_publishes_discovery(monkeypatch):
+    called = {}
+
+    class FakeClient:
+        def __init__(self, callback_api_version, client_id, clean_session):
+            self.on_connect = None
+            self.on_disconnect = None
+
+        def connect(self, host, port, keepalive):
+            return None
+
+        def loop_start(self):
+            return None
+
+    monkeypatch.setattr(mqtt_client.mqtt, "Client", FakeClient)
+
+    def fake_publish_discovery(client, topic_prefix, wiimote_ids, discovery_prefix="homeassistant"):
+        called["args"] = (topic_prefix, tuple(wiimote_ids), discovery_prefix)
+        return {"controllers": 2, "entities": 26, "failed": 0}
+
+    monkeypatch.setattr(mqtt_client, "publish_discovery_configs", fake_publish_discovery)
+
+    settings = Settings(
+        radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
+        discover_enabled=True,
+        mqtt_host="broker.local",
+        mqtt_port=1883,
+        mqtt_username="",
+        mqtt_password="",
+        topic_prefix="wiimote",
+    )
+
+    client = mqtt_client.connect_mqtt_with_discovery(
+        settings,
+        discovery_enabled=True,
+        discovery_topic_prefix="wiimote",
+        discovery_wiimote_ids=(1, 9),
+    )
+
+    client.on_connect(client, None, None, 0, None)
+
+    assert called["args"] == ("wiimote", (1, 9), "homeassistant")
 
 
 def test_mqtt_publish_waits_for_publish(monkeypatch):

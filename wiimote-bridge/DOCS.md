@@ -111,7 +111,7 @@ Due to limitations in the ESP32 Classic HID stack, each ESP32 radio can pair wit
 
 #### `discover_enabled`
 
-Controls whether the add-on publishes Home Assistant MQTT Discovery config topics on startup.
+Controls whether the add-on publishes Home Assistant MQTT Discovery config topics after a confirmed MQTT connection.
 
 Default:
 
@@ -119,7 +119,7 @@ Default:
 true
 ```
 
-Set this to `false` if you want to manage entities manually and disable auto-discovery.
+When enabled, discovery payloads are also republished after MQTT reconnects. Set this to `false` if you want to manage entities manually and disable auto-discovery.
 
 #### `mqtt_host`
 
@@ -246,7 +246,9 @@ Supported incoming message types:
 
 ## Home Assistant MQTT Discovery
 
-On startup, the add-on publishes retained MQTT Discovery config topics so Home Assistant can auto-create entities for each configured `controller_id`.
+After MQTT connection is confirmed, the add-on publishes retained MQTT Discovery config topics so Home Assistant can auto-create entities for each configured `controller_id`.
+
+The add-on republishes discovery topics after MQTT reconnects. Since config topics are retained and unique IDs are stable, this is idempotent and updates the same Home Assistant entities instead of creating duplicates.
 
 Discovery prefix:
 
@@ -259,6 +261,8 @@ Entity types created per controller:
 - Connectivity binary sensor (`.../status/connected`)
 - Battery sensor (`.../status/battery`)
 - Button binary sensors for `A`, `B`, `UP`, `DOWN`, `LEFT`, `RIGHT`, `PLUS`, `MINUS`, `HOME`, `ONE`, `TWO`
+
+Button entities are intentionally modeled as binary sensors because the bridge publishes button edge transitions (`ON` for press, `OFF` for release), which align with binary sensor semantics and Home Assistant automations.
 
 ### Button Events
 
@@ -554,7 +558,8 @@ Verify:
 
 1. `mqtt_host` resolves from inside Home Assistant.
 2. `mqtt_port` is correct.
-3. Credentials are valid if authentication is enabled.
+3. `mqtt_username` and `mqtt_password` are valid if authentication is required.
+4. The broker accepts connections from the add-on network.
 
 During temporary MQTT outages or reconnects, warning lines like the following are expected:
 
@@ -563,8 +568,20 @@ WARNING wiimote_bridge.transport.mqtt_client: Skipping MQTT publish while client
 ```
 
 This warning is rate-limited to once every 15 seconds while disconnected.
-3. `mqtt_username` and `mqtt_password` are valid if authentication is required.
-4. The broker accepts connections from the add-on network.
+
+Discovery readiness and publication lines now include:
+
+```log
+INFO wiimote_bridge.transport.mqtt_client: Connected to MQTT broker at core-mosquitto:1883
+INFO wiimote_bridge.transport.mqtt_client: Publishing MQTT discovery for 1 controller(s); expecting 13 entity configs
+INFO wiimote_bridge.transport.mqtt_client: MQTT discovery publish completed successfully: 13 entities announced
+```
+
+If some discovery entities fail to publish:
+
+```log
+WARNING wiimote_bridge.transport.mqtt_client: MQTT discovery publish completed with failures: 1/13 entities failed
+```
 
 ### The Add-on Installs but Home Assistant Cannot Pull the Image
 
@@ -580,9 +597,37 @@ Check that:
 
 - The application currently provides dedicated MQTT topics for button events, connection state, battery level, and heartbeat messages.
 - Every firmware message is also forwarded to an events JSON MQTT topic.
+- Home Assistant entities (via discovery) and raw MQTT-topic automations can be used side by side.
+- Discovery payloads are republished on MQTT reconnect, so Home Assistant can recover without relying on startup timing.
 - Motion, rumble, LED control, and inbound command topics are not yet implemented in the add-on.
 - Each ESP32 radio supports one paired Wii Remote with ESP32Wiimote.
 - Multiple Wii Remotes on one host require multiple ESP32 radios and multiple add-on instances with distinct `controller_id` values.
+
+## Retained Discovery Validation
+
+Use this procedure to verify discovery topics are present and durable.
+
+1. Start the add-on and confirm discovery publication logs appear after MQTT connects.
+2. Query retained discovery config topics on the broker:
+
+```bash
+mosquitto_sub -h <broker-host> -p <broker-port> -u <user> -P <pass> -v -R -t 'homeassistant/+/wiimote_+/+/config'
+```
+
+3. Confirm each configured controller has:
+
+- one connectivity binary sensor discovery topic
+- one battery sensor discovery topic
+- one discovery topic per supported button
+
+4. Confirm payload state topics match runtime topics:
+
+- `<topic_prefix>/<controller_id>/status/connected`
+- `<topic_prefix>/<controller_id>/status/battery`
+- `<topic_prefix>/<controller_id>/button/<BUTTON>`
+
+5. Restart Home Assistant only and confirm entities are rebuilt from retained discovery topics without forcing add-on restart.
+6. Restart the MQTT broker and confirm discovery gets republished after reconnect.
 
 ## Recommended Validation Checklist
 

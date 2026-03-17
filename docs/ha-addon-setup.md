@@ -4,6 +4,8 @@ This guide covers installation, configuration, validation, and troubleshooting f
 
 The add-on reads JSON events from the ESP32 over USB serial and publishes supported events to MQTT.
 
+When `discover_enabled: true`, Home Assistant MQTT Discovery payloads are published after MQTT connection is confirmed and republished on reconnect.
+
 ## Requirements
 
 Before installation, make sure you have:
@@ -282,6 +284,14 @@ After installation, verify these in order:
 5. Button presses produce MQTT publications.
 6. A Home Assistant automation triggers from one of those topics.
 
+If events are visible but entities are missing, validate retained discovery topics:
+
+```bash
+mosquitto_sub -h <broker-host> -p <broker-port> -u <user> -P <pass> -v -R -t 'homeassistant/+/wiimote_+/+/config'
+```
+
+Also confirm add-on logs include discovery publication summary lines after MQTT connects.
+
 ## Troubleshooting
 
 ### No events appear in MQTT
@@ -325,6 +335,17 @@ Verify:
 
 During temporary broker outages or reconnects, the bridge skips MQTT publishes and logs a warning at most once every 15 seconds until connectivity returns.
 
+After broker recovery, discovery is republished automatically on reconnect.
+
+## Entities vs Raw MQTT Automations
+
+The add-on supports both patterns at the same time:
+
+- Home Assistant entities through MQTT Discovery for UI-friendly diagnostics and entity-based automations
+- direct MQTT topics for low-level trigger/payload handling
+
+Use raw topics when you need direct control over payload semantics or event stream handling.
+
 ## Stopping the Add-on
 
 Stopping the add-on disconnects the MQTT client and stops topic publication. The ESP32 firmware continues running until power or USB is removed.
@@ -337,3 +358,5 @@ Once the add-on is stable, you can build higher-level automations around:
 - media controls
 - connection-state notifications
 - heartbeat monitoring
+
+For release hardening, run the full checklist in `docs/release-checklist.md`.

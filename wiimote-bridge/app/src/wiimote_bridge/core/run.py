@@ -6,7 +6,7 @@ from typing import Any
 import serial
 
 from wiimote_bridge.core.handlers import handle_message
-from wiimote_bridge.transport.mqtt_client import connect_mqtt, publish_discovery_configs
+from wiimote_bridge.transport.mqtt_client import connect_mqtt_with_discovery
 from wiimote_bridge.transport.serial_reader import open_serial
 from wiimote_bridge.utils.config import RadioConfig, load_settings
 from wiimote_bridge.utils.logging import configure_logging, get_logger
@@ -111,15 +111,13 @@ def run() -> int:
     signal.signal(signal.SIGTERM, handle_signal)
     signal.signal(signal.SIGINT, handle_signal)
 
-    client = connect_mqtt(settings)
-    if settings.discover_enabled:
-        publish_discovery_configs(
-            client,
-            settings.topic_prefix,
-            (radio.controller_id for radio in settings.radios),
-        )
-    else:
-        LOGGER.info("MQTT discovery publishing is disabled")
+    controller_ids = tuple(radio.controller_id for radio in settings.radios)
+    client = connect_mqtt_with_discovery(
+        settings,
+        discovery_enabled=settings.discover_enabled,
+        discovery_topic_prefix=settings.topic_prefix,
+        discovery_wiimote_ids=controller_ids,
+    )
 
     threads = [
         threading.Thread(
