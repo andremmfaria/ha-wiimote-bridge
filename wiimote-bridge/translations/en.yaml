@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Radios
     description: List of ESP32 radios. Each entry needs port, baud, and controller_id.
-  discover_enabled:
-    name: MQTT discovery
-    description: Enables or disables publishing Home Assistant MQTT Discovery configs.
-  mqtt_host:
-    name: MQTT host
-    description: Hostname of the MQTT broker that receives Wii Remote events.
-  mqtt_port:
-    name: MQTT port
-    description: Broker port. Use 0 for automatic defaults (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: MQTT username
-    description: Optional username for broker authentication.
-  mqtt_password:
-    name: MQTT password
-    description: Optional password for broker authentication.
-  mqtt_transport:
-    name: MQTT transport
-    description: MQTT transport mode. Default is tcp.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: Enable TLS encryption for MQTT. Default is disabled.
-  mqtt_ssl_insecure:
-    name: MQTT SSL insecure cert verification
-    description: Disable TLS certificate verification for self-hosted certificates. Default is disabled.
-  topic_prefix:
-    name: MQTT topic prefix
-    description: Prefix used for all published MQTT topics.
+  mqtt:
+    name: MQTT
+    description: MQTT connection and publishing settings. (expand to modify)
+    fields:
+      host:
+        name: Host
+        description: Hostname of the MQTT broker that receives Wii Remote events.
+      port:
+        name: Port
+        description: Broker port. Use 0 for automatic defaults based on configuration (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Username
+        description: Optional username for broker authentication.
+      password:
+        name: Password
+        description: Optional password for broker authentication.
+      transport:
+        name: Transport
+        description: MQTT transport mode. Default is tcp.
+      ssl:
+        name: SSL
+        description: Enable TLS encryption for MQTT. Default is disabled.
+      ssl_insecure:
+        name: SSL insecure cert verification
+        description: Disable TLS certificate verification for self-hosted certificates. Default is disabled.
+      topic_prefix:
+        name: Topic prefix
+        description: Prefix used for all published MQTT topics. Default is wiimote.
+      discover_enabled:
+        name: MQTT discovery
+        description: Enables or disables publishing Home Assistant MQTT Discovery configs.
   log_level:
     name: Log level
     description: Controls how much detail the application writes to the add-on log.

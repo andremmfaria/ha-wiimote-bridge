@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Radios
     description: Liste des radios ESP32. Chaque entrée doit contenir port, baud et controller_id.
-  discover_enabled:
-    name: MQTT Discovery
-    description: Active ou désactive la publication des configurations MQTT Discovery pour Home Assistant.
-  mqtt_host:
-    name: Hôte MQTT
-    description: Nom d'hôte du broker MQTT qui reçoit les événements de la Wii Remote.
-  mqtt_port:
-    name: Port MQTT
-    description: Port du broker. Utilisez 0 pour les valeurs par défaut automatiques (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: Nom d'utilisateur MQTT
-    description: Nom d'utilisateur optionnel pour l'authentification du broker.
-  mqtt_password:
-    name: Mot de passe MQTT
-    description: Mot de passe optionnel pour l'authentification du broker.
-  mqtt_transport:
-    name: Transport MQTT
-    description: Mode de transport MQTT. La valeur par défaut est tcp.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: Active le chiffrement TLS pour MQTT. Désactivé par défaut.
-  mqtt_ssl_insecure:
-    name: MQTT SSL sans vérification du certificat
-    description: Désactive la vérification de la chaîne de certificats TLS pour les certificats auto-hébergés. Désactivé par défaut.
-  topic_prefix:
-    name: Préfixe de sujet MQTT
-    description: Préfixe utilisé pour tous les sujets MQTT publiés.
+  mqtt:
+    name: MQTT
+    description: Paramètres de connexion et de publication MQTT. (développez pour modifier)
+    fields:
+      host:
+        name: Hôte
+        description: Nom d'hôte du broker MQTT qui reçoit les événements de la Wii Remote.
+      port:
+        name: Port
+        description: Port du broker. Utilisez 0 pour les valeurs par défaut automatiques selon la configuration (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Nom d'utilisateur
+        description: Nom d'utilisateur optionnel pour l'authentification du broker.
+      password:
+        name: Mot de passe
+        description: Mot de passe optionnel pour l'authentification du broker.
+      transport:
+        name: Transport
+        description: Mode de transport MQTT. La valeur par défaut est tcp.
+      ssl:
+        name: SSL
+        description: Active le chiffrement TLS pour MQTT. Désactivé par défaut.
+      ssl_insecure:
+        name: SSL sans vérification du certificat
+        description: Désactive la vérification de la chaîne de certificats TLS pour les certificats auto-hébergés. Désactivé par défaut.
+      topic_prefix:
+        name: Préfixe de sujet
+        description: Préfixe utilisé pour tous les sujets MQTT publiés. La valeur par défaut est wiimote.
+      discover_enabled:
+        name: MQTT Discovery
+        description: Active ou désactive la publication des configurations MQTT Discovery pour Home Assistant.
   log_level:
     name: Niveau de journalisation
     description: Contrôle le niveau de détail que l'application écrit dans le journal du module complémentaire.

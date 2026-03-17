@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Rádiók
     description: ESP32 rádiók listája. Minden bejegyzésnek tartalmaznia kell a port, baud és controller_id értékeket.
-  discover_enabled:
-    name: MQTT Discovery
-    description: Be- vagy kikapcsolja a Home Assistant MQTT Discovery konfigurációk közzétételét.
-  mqtt_host:
-    name: MQTT hoszt
-    description: Annak az MQTT brokernek a hosztneve, amely a Wii Remote eseményeit fogadja.
-  mqtt_port:
-    name: MQTT port
-    description: Broker port. A 0 automatikus alapértékeket jelent (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: MQTT felhasználónév
-    description: Opcionális felhasználónév a broker hitelesítéséhez.
-  mqtt_password:
-    name: MQTT jelszó
-    description: Opcionális jelszó a broker hitelesítéséhez.
-  mqtt_transport:
-    name: MQTT átvitel
-    description: MQTT átviteli mód. Alapértelmezett: tcp.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: TLS titkosítást engedélyez az MQTT-hez. Alapértelmezésben letiltva.
-  mqtt_ssl_insecure:
-    name: MQTT SSL tanúsítvány-ellenőrzés nélkül
-    description: Letiltja a TLS tanúsítványlánc ellenőrzését saját hosztolású tanúsítványokhoz. Alapértelmezésben letiltva.
-  topic_prefix:
-    name: MQTT témakör előtag
-    description: Az összes közzétett MQTT témakörhöz használt előtag.
+  mqtt:
+    name: MQTT
+    description: MQTT kapcsolódási és közzétételi beállítások. (kibontás a módosításhoz)
+    fields:
+      host:
+        name: Hoszt
+        description: Annak az MQTT brokernek a hosztneve, amely a Wii Remote eseményeit fogadja.
+      port:
+        name: Port
+        description: Broker port. A 0 automatikus alapértékeket jelent a konfiguráció alapján (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Felhasználónév
+        description: Opcionális felhasználónév a broker hitelesítéséhez.
+      password:
+        name: Jelszó
+        description: Opcionális jelszó a broker hitelesítéséhez.
+      transport:
+        name: Átvitel
+        description: MQTT átviteli mód. Alapértelmezett: tcp.
+      ssl:
+        name: SSL
+        description: TLS titkosítást engedélyez az MQTT-hez. Alapértelmezésben letiltva.
+      ssl_insecure:
+        name: SSL tanúsítvány-ellenőrzés nélkül
+        description: Letiltja a TLS tanúsítványlánc ellenőrzését saját hosztolású tanúsítványokhoz. Alapértelmezésben letiltva.
+      topic_prefix:
+        name: Témakör előtag
+        description: Az összes közzétett MQTT témakörhöz használt előtag. Alapértelmezett: wiimote.
+      discover_enabled:
+        name: MQTT Discovery
+        description: Be- vagy kikapcsolja a Home Assistant MQTT Discovery konfigurációk közzétételét.
   log_level:
     name: Naplózási szint
     description: Szabályozza, hogy az alkalmazás mennyi részletet írjon a bővítmény naplójába.

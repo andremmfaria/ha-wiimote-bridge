@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Radijo moduliai
     description: ESP32 radijo modulių sąrašas. Kiekvienas įrašas turi turėti port, baud ir controller_id.
-  discover_enabled:
-    name: MQTT Discovery
-    description: Įjungia arba išjungia Home Assistant MQTT Discovery konfigūracijų publikavimą.
-  mqtt_host:
-    name: MQTT serveris
-    description: MQTT brokerio serverio pavadinimas, gaunantis Wii Remote įvykius.
-  mqtt_port:
-    name: MQTT prievadas
-    description: Brokerio prievadas. Naudokite 0 automatiniams numatytiesiems nustatymams (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: MQTT naudotojo vardas
-    description: Pasirenkamas naudotojo vardas brokerio autentifikacijai.
-  mqtt_password:
-    name: MQTT slaptažodis
-    description: Pasirenkamas slaptažodis brokerio autentifikacijai.
-  mqtt_transport:
-    name: MQTT perdavimas
-    description: MQTT perdavimo režimas. Numatytasis yra tcp.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: Įjungia TLS šifravimą MQTT ryšiui. Pagal numatymą išjungta.
-  mqtt_ssl_insecure:
-    name: MQTT SSL be sertifikato tikrinimo
-    description: Išjungia TLS sertifikatų grandinės tikrinimą savarankiškai talpinamiems sertifikatams. Pagal numatymą išjungta.
-  topic_prefix:
-    name: MQTT temų priešdėlis
-    description: Priešdėlis, naudojamas visoms skelbiamoms MQTT temoms.
+  mqtt:
+    name: MQTT
+    description: MQTT prisijungimo ir skelbimo nustatymai. (išskleiskite norėdami keisti)
+    fields:
+      host:
+        name: Serveris
+        description: MQTT brokerio serverio pavadinimas, gaunantis Wii Remote įvykius.
+      port:
+        name: Prievadas
+        description: Brokerio prievadas. Naudokite 0 automatiniams numatytiesiems nustatymams pagal konfigūraciją (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Naudotojo vardas
+        description: Pasirenkamas naudotojo vardas brokerio autentifikacijai.
+      password:
+        name: Slaptažodis
+        description: Pasirenkamas slaptažodis brokerio autentifikacijai.
+      transport:
+        name: Perdavimas
+        description: MQTT perdavimo režimas. Numatytasis yra tcp.
+      ssl:
+        name: SSL
+        description: Įjungia TLS šifravimą MQTT ryšiui. Pagal numatymą išjungta.
+      ssl_insecure:
+        name: SSL be sertifikato tikrinimo
+        description: Išjungia TLS sertifikatų grandinės tikrinimą savarankiškai talpinamiems sertifikatams. Pagal numatymą išjungta.
+      topic_prefix:
+        name: Temų priešdėlis
+        description: Priešdėlis, naudojamas visoms skelbiamoms MQTT temoms. Numatytasis yra wiimote.
+      discover_enabled:
+        name: MQTT Discovery
+        description: Įjungia arba išjungia Home Assistant MQTT Discovery konfigūracijų publikavimą.
   log_level:
     name: Žurnalo lygis
     description: Nurodo, kiek išsamios informacijos programa rašo į papildinio žurnalą.

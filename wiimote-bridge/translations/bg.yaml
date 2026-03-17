@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Радиомодули
     description: Списък с ESP32 радиомодули. Всеки запис трябва да съдържа port, baud и controller_id.
-  discover_enabled:
-    name: Откриване чрез MQTT
-    description: Включва или изключва публикуването на MQTT Discovery конфигурации за Home Assistant.
-  mqtt_host:
-    name: MQTT хост
-    description: Името на хоста на MQTT брокера, който получава събитията от Wii Remote.
-  mqtt_port:
-    name: MQTT порт
-    description: Порт на брокера. Използвайте 0 за автоматични стойности по подразбиране (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: MQTT потребителско име
-    description: Незадължително потребителско име за удостоверяване към брокера.
-  mqtt_password:
-    name: MQTT парола
-    description: Незадължителна парола за удостоверяване към брокера.
-  mqtt_transport:
-    name: MQTT транспорт
-    description: Режим на MQTT транспорта. По подразбиране е tcp.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: Включва TLS шифроване за MQTT. По подразбиране е изключено.
-  mqtt_ssl_insecure:
-    name: MQTT SSL без проверка на сертификата
-    description: Изключва проверката на TLS сертификатната верига за самостоятелно хоствани сертификати. По подразбиране е изключено.
-  topic_prefix:
-    name: MQTT префикс на темите
-    description: Префикс, използван за всички публикувани MQTT теми.
+  mqtt:
+    name: MQTT
+    description: Настройки за MQTT връзка и публикуване. (разгънете за промяна)
+    fields:
+      host:
+        name: Хост
+        description: Името на хоста на MQTT брокера, който получава събитията от Wii Remote.
+      port:
+        name: Порт
+        description: Порт на брокера. Използвайте 0 за автоматични стойности по подразбиране според конфигурацията (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Потребителско име
+        description: Незадължително потребителско име за удостоверяване към брокера.
+      password:
+        name: Парола
+        description: Незадължителна парола за удостоверяване към брокера.
+      transport:
+        name: Транспорт
+        description: Режим на MQTT транспорта. По подразбиране е tcp.
+      ssl:
+        name: SSL
+        description: Включва TLS шифроване за MQTT. По подразбиране е изключено.
+      ssl_insecure:
+        name: SSL без проверка на сертификата
+        description: Изключва проверката на TLS сертификатната верига за самостоятелно хоствани сертификати. По подразбиране е изключено.
+      topic_prefix:
+        name: Префикс на темите
+        description: Префикс, използван за всички публикувани MQTT теми. По подразбиране е wiimote.
+      discover_enabled:
+        name: Откриване чрез MQTT
+        description: Включва или изключва публикуването на MQTT Discovery конфигурации за Home Assistant.
   log_level:
     name: Ниво на логовете
     description: Управлява колко подробности приложението записва в лога на добавката.

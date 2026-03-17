@@ -74,15 +74,16 @@ radios:
   - port: /dev/ttyUSB0
     baud: 115200
     controller_id: 1
-discover_enabled: true
-mqtt_host: core-mosquitto
-mqtt_port: 0
-mqtt_username: ""
-mqtt_password: ""
-mqtt_transport: tcp
-mqtt_ssl: false
-mqtt_ssl_insecure: false
-topic_prefix: wiimote
+mqtt:
+  host: core-mosquitto
+  port: 0
+  username: ""
+  password: ""
+  transport: tcp
+  ssl: false
+  ssl_insecure: false
+  topic_prefix: wiimote
+  discover_enabled: true
 log_level: info
 ```
 
@@ -112,7 +113,7 @@ radios:
 
 Due to limitations in the ESP32 Classic HID stack, each ESP32 radio can pair with only one Wii Remote at a time. One add-on instance manages all radios, opening a dedicated serial reader thread per entry.
 
-#### `discover_enabled`
+#### `mqtt.discover_enabled`
 
 Controls whether the add-on publishes Home Assistant MQTT Discovery config topics after a confirmed MQTT connection.
 
@@ -124,7 +125,7 @@ true
 
 When enabled, discovery payloads are also republished after MQTT reconnects. Set this to `false` if you want to manage entities manually and disable auto-discovery.
 
-#### `mqtt_host`
+#### `mqtt.host`
 
 Hostname of the MQTT broker.
 
@@ -133,7 +134,7 @@ Common values:
 - `core-mosquitto` for the official Mosquitto add-on.
 - A LAN hostname or IP address for an external broker.
 
-#### `mqtt_port`
+#### `mqtt.port`
 
 TCP port used to connect to the MQTT broker.
 
@@ -145,24 +146,24 @@ Default:
 
 `0` means auto-select based on transport/TLS mode:
 
-- `tcp` + `mqtt_ssl: false` -> `1883`
-- `tcp` + `mqtt_ssl: true` -> `8883`
-- `websockets` + `mqtt_ssl: false` -> `1884`
-- `websockets` + `mqtt_ssl: true` -> `8884`
+- `tcp` + `mqtt.ssl: false` -> `1883`
+- `tcp` + `mqtt.ssl: true` -> `8883`
+- `websockets` + `mqtt.ssl: false` -> `1884`
+- `websockets` + `mqtt.ssl: true` -> `8884`
 
-#### `mqtt_username`
+#### `mqtt.username`
 
 Optional MQTT username.
 
 Leave this empty if your broker accepts anonymous clients on the configured network.
 
-#### `mqtt_password`
+#### `mqtt.password`
 
 Optional MQTT password.
 
-Only used when `mqtt_username` is non-empty.
+Only used when `mqtt.username` is non-empty.
 
-#### `mqtt_transport`
+#### `mqtt.transport`
 
 MQTT network transport.
 
@@ -177,7 +178,7 @@ Default:
 tcp
 ```
 
-#### `mqtt_ssl`
+#### `mqtt.ssl`
 
 Enables TLS for MQTT connections.
 
@@ -187,7 +188,7 @@ Default:
 false
 ```
 
-#### `mqtt_ssl_insecure`
+#### `mqtt.ssl_insecure`
 
 Disables TLS certificate chain verification.
 
@@ -199,7 +200,7 @@ Default:
 false
 ```
 
-#### `topic_prefix`
+#### `mqtt.topic_prefix`
 
 Base prefix for all published MQTT topics.
 

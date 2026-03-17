@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Radjijiet
     description: Lista ta' radjijiet ESP32. Kull entrata trid tinkludi port, baud u controller_id.
-  discover_enabled:
-    name: MQTT Discovery
-    description: Jattiva jew jiddiżattiva l-pubblikazzjoni tal-konfigurazzjonijiet MQTT Discovery għal Home Assistant.
-  mqtt_host:
-    name: Host MQTT
-    description: L-isem tal-host tal-broker MQTT li jirċievi l-avvenimenti tal-Wii Remote.
-  mqtt_port:
-    name: Port MQTT
-    description: Port tal-broker. Uża 0 għal valuri awtomatiċi (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: Username MQTT
-    description: Username opzjonali għall-awtentikazzjoni mal-broker.
-  mqtt_password:
-    name: Password MQTT
-    description: Password opzjonali għall-awtentikazzjoni mal-broker.
-  mqtt_transport:
-    name: Trasport MQTT
-    description: Modalità ta' trasport MQTT. Il-valur awtomatiku huwa tcp.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: Jippermetti kriptaġġ TLS għal MQTT. B'mod awtomatiku huwa diżattivat.
-  mqtt_ssl_insecure:
-    name: MQTT SSL mingħajr verifika taċ-ċertifikat
-    description: Jiddiżattiva l-verifika tal-katina taċ-ċertifikati TLS għal ċertifikati self-hosted. B'mod awtomatiku huwa diżattivat.
-  topic_prefix:
-    name: Prefiss tas-suġġetti MQTT
-    description: Prefiss użat għas-suġġetti MQTT kollha ppubblikati.
+  mqtt:
+    name: MQTT
+    description: Issettjar ta’ konnessjoni u pubblikazzjoni MQTT. (espandi biex timmodifika)
+    fields:
+      host:
+        name: Host
+        description: L-isem tal-host tal-broker MQTT li jirċievi l-avvenimenti tal-Wii Remote.
+      port:
+        name: Port
+        description: Port tal-broker. Uża 0 għal valuri awtomatiċi bbażati fuq il-konfigurazzjoni (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Username
+        description: Username opzjonali għall-awtentikazzjoni mal-broker.
+      password:
+        name: Password
+        description: Password opzjonali għall-awtentikazzjoni mal-broker.
+      transport:
+        name: Trasport
+        description: Modalità ta' trasport MQTT. Il-valur awtomatiku huwa tcp.
+      ssl:
+        name: SSL
+        description: Jippermetti kriptaġġ TLS għal MQTT. B'mod awtomatiku huwa diżattivat.
+      ssl_insecure:
+        name: SSL mingħajr verifika taċ-ċertifikat
+        description: Jiddiżattiva l-verifika tal-katina taċ-ċertifikati TLS għal ċertifikati self-hosted. B'mod awtomatiku huwa diżattivat.
+      topic_prefix:
+        name: Prefiss tas-suġġetti
+        description: Prefiss użat għas-suġġetti MQTT kollha ppubblikati. Il-valur awtomatiku huwa wiimote.
+      discover_enabled:
+        name: MQTT Discovery
+        description: Jattiva jew jiddiżattiva l-pubblikazzjoni tal-konfigurazzjonijiet MQTT Discovery għal Home Assistant.
   log_level:
     name: Livell tal-log
     description: Jikkontrolla kemm dettalji l-applikazzjoni tikteb fil-log tal-add-on.

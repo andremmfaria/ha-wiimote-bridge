@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Module radio
     description: Listă de module radio ESP32. Fiecare intrare trebuie să includă port, baud și controller_id.
-  discover_enabled:
-    name: MQTT Discovery
-    description: Activează sau dezactivează publicarea configurațiilor MQTT Discovery pentru Home Assistant.
-  mqtt_host:
-    name: Gazdă MQTT
-    description: Numele gazdei brokerului MQTT care primește evenimentele Wii Remote.
-  mqtt_port:
-    name: Port MQTT
-    description: Portul brokerului. Folosește 0 pentru valorile implicite automate (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: Nume utilizator MQTT
-    description: Nume de utilizator opțional pentru autentificarea la broker.
-  mqtt_password:
-    name: Parolă MQTT
-    description: Parolă opțională pentru autentificarea la broker.
-  mqtt_transport:
-    name: Transport MQTT
-    description: Modul de transport MQTT. Implicit este tcp.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: Activează criptarea TLS pentru MQTT. Implicit este dezactivat.
-  mqtt_ssl_insecure:
-    name: MQTT SSL fără verificarea certificatului
-    description: Dezactivează verificarea lanțului de certificate TLS pentru certificate self-hosted. Implicit este dezactivat.
-  topic_prefix:
-    name: Prefix topic MQTT
-    description: Prefix folosit pentru toate topicurile MQTT publicate.
+  mqtt:
+    name: MQTT
+    description: Setări de conectare și publicare MQTT. (extindeți pentru modificare)
+    fields:
+      host:
+        name: Gazdă
+        description: Numele gazdei brokerului MQTT care primește evenimentele Wii Remote.
+      port:
+        name: Port
+        description: Portul brokerului. Folosește 0 pentru valorile implicite automate în funcție de configurație (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Nume utilizator
+        description: Nume de utilizator opțional pentru autentificarea la broker.
+      password:
+        name: Parolă
+        description: Parolă opțională pentru autentificarea la broker.
+      transport:
+        name: Transport
+        description: Modul de transport MQTT. Implicit este tcp.
+      ssl:
+        name: SSL
+        description: Activează criptarea TLS pentru MQTT. Implicit este dezactivat.
+      ssl_insecure:
+        name: SSL fără verificarea certificatului
+        description: Dezactivează verificarea lanțului de certificate TLS pentru certificate self-hosted. Implicit este dezactivat.
+      topic_prefix:
+        name: Prefix topic
+        description: Prefix folosit pentru toate topicurile MQTT publicate. Implicit este wiimote.
+      discover_enabled:
+        name: MQTT Discovery
+        description: Activează sau dezactivează publicarea configurațiilor MQTT Discovery pentru Home Assistant.
   log_level:
     name: Nivel de jurnalizare
     description: Controlează cât de multe detalii scrie aplicația în jurnalul suplimentului.

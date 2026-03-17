@@ -24,15 +24,16 @@ options:
     - port: "/dev/ttyUSB0"
       baud: 115200
       controller_id: 1
-  discover_enabled: true
-  mqtt_host: "core-mosquitto"
-  mqtt_port: 0
-  mqtt_username: ""
-  mqtt_password: ""
-  mqtt_transport: "tcp"
-  mqtt_ssl: false
-  mqtt_ssl_insecure: false
-  topic_prefix: "wiimote"
+  mqtt:
+    topic_prefix: "wiimote"
+    discover_enabled: true
+    username: ""
+    password: ""
+    host: "core-mosquitto"
+    port: 0
+    transport: "tcp"
+    ssl: false
+    ssl_insecure: false
   log_level: "info"
 
 schema:
@@ -40,13 +41,14 @@ schema:
     - port: device(subsystem=tty)
       baud: int
       controller_id: int
-  discover_enabled: bool
-  mqtt_host: str
-  mqtt_port: int
-  mqtt_username: str
-  mqtt_password: password
-  mqtt_transport: list(tcp|websockets)
-  mqtt_ssl: bool
-  mqtt_ssl_insecure: bool
-  topic_prefix: str
+  mqtt: 
+    topic_prefix: str
+    discover_enabled: bool
+    username: str
+    password: password
+    host: str
+    port: int
+    transport: list(tcp|websockets)
+    ssl: bool
+    ssl_insecure: bool
   log_level: list(debug|info|warning|error)

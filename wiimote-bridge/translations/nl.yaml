@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Radio's
     description: Lijst met ESP32-radio's. Elke invoer moet port, baud en controller_id bevatten.
-  discover_enabled:
-    name: MQTT Discovery
-    description: Schakelt het publiceren van Home Assistant MQTT Discovery-configuraties in of uit.
-  mqtt_host:
-    name: MQTT-host
-    description: Hostnaam van de MQTT-broker die Wii Remote-gebeurtenissen ontvangt.
-  mqtt_port:
-    name: MQTT-poort
-    description: Brokerpoort. Gebruik 0 voor automatische standaardwaarden (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: MQTT-gebruikersnaam
-    description: Optionele gebruikersnaam voor broker-authenticatie.
-  mqtt_password:
-    name: MQTT-wachtwoord
-    description: Optioneel wachtwoord voor broker-authenticatie.
-  mqtt_transport:
-    name: MQTT-transport
-    description: MQTT-transportmodus. Standaard is tcp.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: Schakelt TLS-versleuteling voor MQTT in. Standaard uitgeschakeld.
-  mqtt_ssl_insecure:
-    name: MQTT SSL zonder certificaatverificatie
-    description: Schakelt verificatie van de TLS-certificaatketen uit voor zelfgehoste certificaten. Standaard uitgeschakeld.
-  topic_prefix:
-    name: MQTT-topicprefix
-    description: Prefix dat wordt gebruikt voor alle gepubliceerde MQTT-topics.
+  mqtt:
+    name: MQTT
+    description: Instellingen voor MQTT-verbinding en publiceren. (uitklappen om te wijzigen)
+    fields:
+      host:
+        name: Host
+        description: Hostnaam van de MQTT-broker die Wii Remote-gebeurtenissen ontvangt.
+      port:
+        name: Poort
+        description: Brokerpoort. Gebruik 0 voor automatische standaardwaarden op basis van de configuratie (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Gebruikersnaam
+        description: Optionele gebruikersnaam voor broker-authenticatie.
+      password:
+        name: Wachtwoord
+        description: Optioneel wachtwoord voor broker-authenticatie.
+      transport:
+        name: Transport
+        description: MQTT-transportmodus. Standaard is tcp.
+      ssl:
+        name: SSL
+        description: Schakelt TLS-versleuteling voor MQTT in. Standaard uitgeschakeld.
+      ssl_insecure:
+        name: SSL zonder certificaatverificatie
+        description: Schakelt verificatie van de TLS-certificaatketen uit voor zelfgehoste certificaten. Standaard uitgeschakeld.
+      topic_prefix:
+        name: Topicprefix
+        description: Prefix dat wordt gebruikt voor alle gepubliceerde MQTT-topics. Standaard is wiimote.
+      discover_enabled:
+        name: MQTT Discovery
+        description: Schakelt het publiceren van Home Assistant MQTT Discovery-configuraties in of uit.
   log_level:
     name: Logniveau
     description: Bepaalt hoeveel details de applicatie naar het add-onlog schrijft.

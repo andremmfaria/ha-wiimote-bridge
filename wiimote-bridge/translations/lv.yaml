@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Radio moduļi
     description: ESP32 radio moduļu saraksts. Katram ierakstam jāiekļauj port, baud un controller_id.
-  discover_enabled:
-    name: MQTT Discovery
-    description: Iespējo vai atspējo Home Assistant MQTT Discovery konfigurāciju publicēšanu.
-  mqtt_host:
-    name: MQTT resursdators
-    description: MQTT brokera resursdatora nosaukums, kas saņem Wii Remote notikumus.
-  mqtt_port:
-    name: MQTT ports
-    description: Brokera ports. Izmantojiet 0 automātiskām noklusējuma vērtībām (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: MQTT lietotājvārds
-    description: Neobligāts lietotājvārds brokera autentifikācijai.
-  mqtt_password:
-    name: MQTT parole
-    description: Neobligāta parole brokera autentifikācijai.
-  mqtt_transport:
-    name: MQTT transports
-    description: MQTT transporta režīms. Noklusējums ir tcp.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: Iespējo TLS šifrēšanu MQTT savienojumam. Pēc noklusējuma ir atspējots.
-  mqtt_ssl_insecure:
-    name: MQTT SSL bez sertifikātu pārbaudes
-    description: Atspējo TLS sertifikātu ķēdes pārbaudi pašmitinātiem sertifikātiem. Pēc noklusējuma ir atspējots.
-  topic_prefix:
-    name: MQTT tēmu prefikss
-    description: Prefikss, kas tiek izmantots visām publicētajām MQTT tēmām.
+  mqtt:
+    name: MQTT
+    description: MQTT savienojuma un publicēšanas iestatījumi. (izvērsiet, lai mainītu)
+    fields:
+      host:
+        name: Resursdators
+        description: MQTT brokera resursdatora nosaukums, kas saņem Wii Remote notikumus.
+      port:
+        name: Ports
+        description: Brokera ports. Izmantojiet 0 automātiskām noklusējuma vērtībām atbilstoši konfigurācijai (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Lietotājvārds
+        description: Neobligāts lietotājvārds brokera autentifikācijai.
+      password:
+        name: Parole
+        description: Neobligāta parole brokera autentifikācijai.
+      transport:
+        name: Transports
+        description: MQTT transporta režīms. Noklusējums ir tcp.
+      ssl:
+        name: SSL
+        description: Iespējo TLS šifrēšanu MQTT savienojumam. Pēc noklusējuma ir atspējots.
+      ssl_insecure:
+        name: SSL bez sertifikātu pārbaudes
+        description: Atspējo TLS sertifikātu ķēdes pārbaudi pašmitinātiem sertifikātiem. Pēc noklusējuma ir atspējots.
+      topic_prefix:
+        name: Tēmu prefikss
+        description: Prefikss, kas tiek izmantots visām publicētajām MQTT tēmām. Noklusējums ir wiimote.
+      discover_enabled:
+        name: MQTT Discovery
+        description: Iespējo vai atspējo Home Assistant MQTT Discovery konfigurāciju publicēšanu.
   log_level:
     name: Žurnāla līmenis
     description: Nosaka, cik detalizētu informāciju lietotne raksta papildinājuma žurnālā.

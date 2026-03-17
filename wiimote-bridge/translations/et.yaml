@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Raadiod
     description: ESP32 raadiote loend. Iga kirje peab sisaldama port, baud ja controller_id.
-  discover_enabled:
-    name: MQTT Discovery
-    description: Lubab või keelab Home Assistanti MQTT Discovery konfiguratsioonide avaldamise.
-  mqtt_host:
-    name: MQTT host
-    description: MQTT vahendaja hostinimi, mis võtab vastu Wii Remote'i sündmused.
-  mqtt_port:
-    name: MQTT port
-    description: Vahendaja port. Kasuta 0 automaatsete vaikimisi väärtuste jaoks (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: MQTT kasutajanimi
-    description: Valikuline kasutajanimi vahendaja autentimiseks.
-  mqtt_password:
-    name: MQTT parool
-    description: Valikuline parool vahendaja autentimiseks.
-  mqtt_transport:
-    name: MQTT transport
-    description: MQTT transpordirežiim. Vaikimisi on tcp.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: Lubab MQTT jaoks TLS-krüpteeringu. Vaikimisi on keelatud.
-  mqtt_ssl_insecure:
-    name: MQTT SSL ilma sertifikaadi kontrollita
-    description: Keelab isehostitud sertifikaatide TLS-sertifikaadiahela kontrolli. Vaikimisi on keelatud.
-  topic_prefix:
-    name: MQTT teema prefiks
-    description: Prefiks, mida kasutatakse kõigi avaldatud MQTT teemade jaoks.
+  mqtt:
+    name: MQTT
+    description: MQTT ühenduse ja avaldamise seaded. (laienda muutmiseks)
+    fields:
+      host:
+        name: Host
+        description: MQTT vahendaja hostinimi, mis võtab vastu Wii Remote'i sündmused.
+      port:
+        name: Port
+        description: Vahendaja port. Kasuta 0 automaatsete vaikimisi väärtuste jaoks vastavalt konfiguratsioonile (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Kasutajanimi
+        description: Valikuline kasutajanimi vahendaja autentimiseks.
+      password:
+        name: Parool
+        description: Valikuline parool vahendaja autentimiseks.
+      transport:
+        name: Transport
+        description: MQTT transpordirežiim. Vaikimisi on tcp.
+      ssl:
+        name: SSL
+        description: Lubab MQTT jaoks TLS-krüpteeringu. Vaikimisi on keelatud.
+      ssl_insecure:
+        name: SSL ilma sertifikaadi kontrollita
+        description: Keelab isehostitud sertifikaatide TLS-sertifikaadiahela kontrolli. Vaikimisi on keelatud.
+      topic_prefix:
+        name: Teema prefiks
+        description: Prefiks, mida kasutatakse kõigi avaldatud MQTT teemade jaoks. Vaikimisi on wiimote.
+      discover_enabled:
+        name: MQTT Discovery
+        description: Lubab või keelab Home Assistanti MQTT Discovery konfiguratsioonide avaldamise.
   log_level:
     name: Logitase
     description: Määrab, kui palju üksikasju rakendus lisandmooduli logisse kirjutab.

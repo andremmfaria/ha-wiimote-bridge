@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Radioenheder
     description: Liste over ESP32-radioenheder. Hver post skal indeholde port, baud og controller_id.
-  discover_enabled:
-    name: MQTT Discovery
-    description: Aktiverer eller deaktiverer publicering af MQTT Discovery-konfigurationer til Home Assistant.
-  mqtt_host:
-    name: MQTT-vært
-    description: Værtsnavn på MQTT-broker, der modtager Wii Remote-hændelser.
-  mqtt_port:
-    name: MQTT-port
-    description: Brokerport. Brug 0 for automatiske standardværdier (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: MQTT-brugernavn
-    description: Valgfrit brugernavn til broker-godkendelse.
-  mqtt_password:
-    name: MQTT-adgangskode
-    description: Valgfri adgangskode til broker-godkendelse.
-  mqtt_transport:
-    name: MQTT-transport
-    description: MQTT-transporttilstand. Standard er tcp.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: Aktiverer TLS-kryptering for MQTT. Standard er deaktiveret.
-  mqtt_ssl_insecure:
-    name: MQTT SSL uden certifikatvalidering
-    description: Deaktiverer validering af TLS-certifikatkæden for selvhostede certifikater. Standard er deaktiveret.
-  topic_prefix:
-    name: MQTT-emnepræfiks
-    description: Præfiks brugt til alle publicerede MQTT-emner.
+  mqtt:
+    name: MQTT
+    description: Indstillinger for MQTT-forbindelse og publicering. (udvid for at ændre)
+    fields:
+      host:
+        name: Vært
+        description: Værtsnavn på MQTT-broker, der modtager Wii Remote-hændelser.
+      port:
+        name: Port
+        description: Brokerport. Brug 0 for automatiske standardværdier baseret på konfigurationen (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Brugernavn
+        description: Valgfrit brugernavn til broker-godkendelse.
+      password:
+        name: Adgangskode
+        description: Valgfri adgangskode til broker-godkendelse.
+      transport:
+        name: Transport
+        description: MQTT-transporttilstand. Standard er tcp.
+      ssl:
+        name: SSL
+        description: Aktiverer TLS-kryptering for MQTT. Standard er deaktiveret.
+      ssl_insecure:
+        name: SSL uden certifikatvalidering
+        description: Deaktiverer validering af TLS-certifikatkæden for selvhostede certifikater. Standard er deaktiveret.
+      topic_prefix:
+        name: Emnepræfiks
+        description: Præfiks brugt til alle publicerede MQTT-emner. Standard er wiimote.
+      discover_enabled:
+        name: MQTT Discovery
+        description: Aktiverer eller deaktiverer publicering af MQTT Discovery-konfigurationer til Home Assistant.
   log_level:
     name: Logniveau
     description: Styrer, hvor mange detaljer programmet skriver til add-on-loggen.

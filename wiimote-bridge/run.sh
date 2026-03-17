@@ -15,15 +15,15 @@ export TOPIC_PREFIX
 export LOG_LEVEL
 
 RADIOS="$(bashio::config 'radios')"
-DISCOVER_ENABLED="$(bashio::config 'discover_enabled')"
-MQTT_HOST="$(bashio::config 'mqtt_host')"
-MQTT_PORT="$(bashio::config 'mqtt_port')"
-MQTT_USERNAME="$(bashio::config 'mqtt_username')"
-MQTT_PASSWORD="$(bashio::config 'mqtt_password')"
-MQTT_TRANSPORT="$(bashio::config 'mqtt_transport')"
-MQTT_SSL="$(bashio::config 'mqtt_ssl')"
-MQTT_SSL_INSECURE="$(bashio::config 'mqtt_ssl_insecure')"
-TOPIC_PREFIX="$(bashio::config 'topic_prefix')"
+DISCOVER_ENABLED="$(bashio::config 'mqtt.discover_enabled')"
+MQTT_HOST="$(bashio::config 'mqtt.host')"
+MQTT_PORT="$(bashio::config 'mqtt.port')"
+MQTT_USERNAME="$(bashio::config 'mqtt.username')"
+MQTT_PASSWORD="$(bashio::config 'mqtt.password')"
+MQTT_TRANSPORT="$(bashio::config 'mqtt.transport')"
+MQTT_SSL="$(bashio::config 'mqtt.ssl')"
+MQTT_SSL_INSECURE="$(bashio::config 'mqtt.ssl_insecure')"
+TOPIC_PREFIX="$(bashio::config 'mqtt.topic_prefix')"
 LOG_LEVEL="$(bashio::config 'log_level')"
 
 if [[ -z "${MQTT_PORT}" || "${MQTT_PORT}" == "0" ]]; then

@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Ραδιόφωνα
     description: Λίστα από ραδιόφωνα ESP32. Κάθε καταχώριση πρέπει να περιλαμβάνει port, baud και controller_id.
-  discover_enabled:
-    name: MQTT Discovery
-    description: Ενεργοποιεί ή απενεργοποιεί τη δημοσίευση ρυθμίσεων MQTT Discovery για το Home Assistant.
-  mqtt_host:
-    name: MQTT host
-    description: Το όνομα host του MQTT broker που λαμβάνει συμβάντα από το Wii Remote.
-  mqtt_port:
-    name: MQTT θύρα
-    description: Θύρα broker. Χρησιμοποιήστε 0 για αυτόματες προεπιλογές (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: MQTT όνομα χρήστη
-    description: Προαιρετικό όνομα χρήστη για αυθεντικοποίηση στον broker.
-  mqtt_password:
-    name: MQTT κωδικός πρόσβασης
-    description: Προαιρετικός κωδικός πρόσβασης για αυθεντικοποίηση στον broker.
-  mqtt_transport:
-    name: Μεταφορά MQTT
-    description: Λειτουργία μεταφοράς MQTT. Προεπιλογή: tcp.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: Ενεργοποιεί κρυπτογράφηση TLS για MQTT. Από προεπιλογή είναι απενεργοποιημένο.
-  mqtt_ssl_insecure:
-    name: MQTT SSL χωρίς επαλήθευση πιστοποιητικού
-    description: Απενεργοποιεί την επαλήθευση της αλυσίδας πιστοποιητικών TLS για self-hosted πιστοποιητικά. Από προεπιλογή είναι απενεργοποιημένο.
-  topic_prefix:
-    name: Πρόθεμα θεμάτων MQTT
-    description: Πρόθεμα που χρησιμοποιείται για όλα τα δημοσιευμένα θέματα MQTT.
+  mqtt:
+    name: MQTT
+    description: Ρυθμίσεις σύνδεσης και δημοσίευσης MQTT. (επεκτείνετε για τροποποίηση)
+    fields:
+      host:
+        name: Host
+        description: Το όνομα host του MQTT broker που λαμβάνει συμβάντα από το Wii Remote.
+      port:
+        name: Θύρα
+        description: Θύρα broker. Χρησιμοποιήστε 0 για αυτόματες προεπιλογές με βάση τη ρύθμιση (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Όνομα χρήστη
+        description: Προαιρετικό όνομα χρήστη για αυθεντικοποίηση στον broker.
+      password:
+        name: Κωδικός πρόσβασης
+        description: Προαιρετικός κωδικός πρόσβασης για αυθεντικοποίηση στον broker.
+      transport:
+        name: Μεταφορά
+        description: Λειτουργία μεταφοράς MQTT. Προεπιλογή: tcp.
+      ssl:
+        name: SSL
+        description: Ενεργοποιεί κρυπτογράφηση TLS για MQTT. Από προεπιλογή είναι απενεργοποιημένο.
+      ssl_insecure:
+        name: SSL χωρίς επαλήθευση πιστοποιητικού
+        description: Απενεργοποιεί την επαλήθευση της αλυσίδας πιστοποιητικών TLS για self-hosted πιστοποιητικά. Από προεπιλογή είναι απενεργοποιημένο.
+      topic_prefix:
+        name: Πρόθεμα θεμάτων
+        description: Πρόθεμα που χρησιμοποιείται για όλα τα δημοσιευμένα θέματα MQTT. Προεπιλογή: wiimote.
+      discover_enabled:
+        name: MQTT Discovery
+        description: Ενεργοποιεί ή απενεργοποιεί τη δημοσίευση ρυθμίσεων MQTT Discovery για το Home Assistant.
   log_level:
     name: Επίπεδο καταγραφής
     description: Ελέγχει πόση λεπτομέρεια γράφει η εφαρμογή στο αρχείο καταγραφής του πρόσθετου.

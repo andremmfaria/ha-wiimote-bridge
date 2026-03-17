@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Rádia
     description: Seznam rádií ESP32. Každá položka musí obsahovat port, baud a controller_id.
-  discover_enabled:
-    name: MQTT Discovery
-    description: Zapíná nebo vypíná publikování konfiguračních témat MQTT Discovery pro Home Assistant.
-  mqtt_host:
-    name: MQTT hostitel
-    description: Název hostitele MQTT brokeru, který přijímá události Wii Remote.
-  mqtt_port:
-    name: MQTT port
-    description: Port brokeru. Použijte 0 pro automatické výchozí hodnoty (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: MQTT uživatelské jméno
-    description: Volitelné uživatelské jméno pro přihlášení k brokeru.
-  mqtt_password:
-    name: MQTT heslo
-    description: Volitelné heslo pro přihlášení k brokeru.
-  mqtt_transport:
-    name: MQTT přenos
-    description: Režim přenosu MQTT. Výchozí je tcp.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: Povolí TLS šifrování pro MQTT. Ve výchozím stavu je vypnuto.
-  mqtt_ssl_insecure:
-    name: MQTT SSL bez ověření certifikátu
-    description: Vypne ověřování řetězce TLS certifikátu pro self-hosted certifikáty. Ve výchozím stavu je vypnuto.
-  topic_prefix:
-    name: Prefix MQTT témat
-    description: Prefix používaný pro všechna publikovaná MQTT témata.
+  mqtt:
+    name: MQTT
+    description: Nastavení připojení a publikování MQTT. (rozbalte pro úpravu)
+    fields:
+      host:
+        name: Hostitel
+        description: Název hostitele MQTT brokeru, který přijímá události Wii Remote.
+      port:
+        name: Port
+        description: Port brokeru. Použijte 0 pro automatické výchozí hodnoty podle konfigurace (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Uživatelské jméno
+        description: Volitelné uživatelské jméno pro přihlášení k brokeru.
+      password:
+        name: Heslo
+        description: Volitelné heslo pro přihlášení k brokeru.
+      transport:
+        name: Přenos
+        description: Režim přenosu MQTT. Výchozí je tcp.
+      ssl:
+        name: SSL
+        description: Povolí TLS šifrování pro MQTT. Ve výchozím stavu je vypnuto.
+      ssl_insecure:
+        name: SSL bez ověření certifikátu
+        description: Vypne ověřování řetězce TLS certifikátu pro self-hosted certifikáty. Ve výchozím stavu je vypnuto.
+      topic_prefix:
+        name: Prefix témat
+        description: Prefix používaný pro všechna publikovaná MQTT témata. Výchozí je wiimote.
+      discover_enabled:
+        name: MQTT Discovery
+        description: Zapíná nebo vypíná publikování konfiguračních témat MQTT Discovery pro Home Assistant.
   log_level:
     name: Úroveň protokolování
     description: Určuje, kolik podrobností aplikace zapisuje do protokolu doplňku.

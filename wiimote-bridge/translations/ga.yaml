@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Raidiónna
     description: Liosta raidiónna ESP32. Caithfidh port, baud agus controller_id a bheith i ngach iontráil.
-  discover_enabled:
-    name: MQTT Discovery
-    description: Cumasaíonn nó díchumasaíonn sé foilsiú cumraíochtaí MQTT Discovery do Home Assistant.
-  mqtt_host:
-    name: Óstach MQTT
-    description: Ainm óstaigh an bhróicéara MQTT a fhaigheann imeachtaí Wii Remote.
-  mqtt_port:
-    name: Port MQTT
-    description: Port an bhróicéara. Úsáid 0 do réamhshocruithe uathoibríocha (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: Ainm úsáideora MQTT
-    description: Ainm úsáideora roghnach le haghaidh fíordheimhnithe an bhróicéara.
-  mqtt_password:
-    name: Focal faire MQTT
-    description: Focal faire roghnach le haghaidh fíordheimhnithe an bhróicéara.
-  mqtt_transport:
-    name: Iompar MQTT
-    description: Modh iompair MQTT. Is é tcp an réamhshocrú.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: Cumasaíonn sé criptiú TLS do MQTT. Tá sé díchumasaithe de réir réamhshocraithe.
-  mqtt_ssl_insecure:
-    name: MQTT SSL gan fíorú teastais
-    description: Díchumasaíonn sé fíorú slabhra teastais TLS do theastais féin-óstáilte. Tá sé díchumasaithe de réir réamhshocraithe.
-  topic_prefix:
-    name: Réimír topaice MQTT
-    description: Réimír a úsáidtear do gach topaic MQTT a fhoilsítear.
+  mqtt:
+    name: MQTT
+    description: Socruithe ceangail agus foilsithe MQTT. (leathnaigh chun athrú)
+    fields:
+      host:
+        name: Óstach
+        description: Ainm óstaigh an bhróicéara MQTT a fhaigheann imeachtaí Wii Remote.
+      port:
+        name: Port
+        description: Port an bhróicéara. Úsáid 0 do réamhshocruithe uathoibríocha bunaithe ar an gcumraíocht (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Ainm úsáideora
+        description: Ainm úsáideora roghnach le haghaidh fíordheimhnithe an bhróicéara.
+      password:
+        name: Focal faire
+        description: Focal faire roghnach le haghaidh fíordheimhnithe an bhróicéara.
+      transport:
+        name: Iompar
+        description: Modh iompair MQTT. Is é tcp an réamhshocrú.
+      ssl:
+        name: SSL
+        description: Cumasaíonn sé criptiú TLS do MQTT. Tá sé díchumasaithe de réir réamhshocraithe.
+      ssl_insecure:
+        name: SSL gan fíorú teastais
+        description: Díchumasaíonn sé fíorú slabhra teastais TLS do theastais féin-óstáilte. Tá sé díchumasaithe de réir réamhshocraithe.
+      topic_prefix:
+        name: Réimír topaice
+        description: Réimír a úsáidtear do gach topaic MQTT a fhoilsítear. Is é wiimote an réamhshocrú.
+      discover_enabled:
+        name: MQTT Discovery
+        description: Cumasaíonn nó díchumasaíonn sé foilsiú cumraíochtaí MQTT Discovery do Home Assistant.
   log_level:
     name: Leibhéal logála
     description: Rialaíonn sé cé mhéad mionsonraí a scríobhann an feidhmchlár i loga an bhreiseáin.

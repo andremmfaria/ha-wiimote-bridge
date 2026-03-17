@@ -2,33 +2,37 @@ configuration:
   radios:
     name: Radijske enote
     description: Seznam radijskih enot ESP32. Vsak vnos mora vsebovati port, baud in controller_id.
-  discover_enabled:
-    name: MQTT Discovery
-    description: Omogoči ali onemogoči objavo konfiguracij MQTT Discovery za Home Assistant.
-  mqtt_host:
-    name: MQTT gostitelj
-    description: Ime gostitelja MQTT posrednika, ki prejema dogodke Wii Remote.
-  mqtt_port:
-    name: MQTT vrata
-    description: Vrata posrednika. Uporabite 0 za samodejne privzete vrednosti (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
-  mqtt_username:
-    name: MQTT uporabniško ime
-    description: Izbirno uporabniško ime za avtentikacijo pri posredniku.
-  mqtt_password:
-    name: MQTT geslo
-    description: Izbirno geslo za avtentikacijo pri posredniku.
-  mqtt_transport:
-    name: MQTT prenos
-    description: Način prenosa MQTT. Privzeto je tcp.
-  mqtt_ssl:
-    name: MQTT SSL
-    description: Omogoči TLS šifriranje za MQTT. Privzeto je onemogočeno.
-  mqtt_ssl_insecure:
-    name: MQTT SSL brez preverjanja certifikata
-    description: Onemogoči preverjanje verige TLS certifikatov za self-hosted certifikate. Privzeto je onemogočeno.
-  topic_prefix:
-    name: Predpona MQTT tem
-    description: Predpona, uporabljena za vse objavljene MQTT teme.
+  mqtt:
+    name: MQTT
+    description: Nastavitve povezave in objavljanja MQTT. (razširi za spremembo)
+    fields:
+      host:
+        name: Gostitelj
+        description: Ime gostitelja MQTT posrednika, ki prejema dogodke Wii Remote.
+      port:
+        name: Vrata
+        description: Vrata posrednika. Uporabite 0 za samodejne privzete vrednosti glede na konfiguracijo (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
+      username:
+        name: Uporabniško ime
+        description: Izbirno uporabniško ime za avtentikacijo pri posredniku.
+      password:
+        name: Geslo
+        description: Izbirno geslo za avtentikacijo pri posredniku.
+      transport:
+        name: Prenos
+        description: Način prenosa MQTT. Privzeto je tcp.
+      ssl:
+        name: SSL
+        description: Omogoči TLS šifriranje za MQTT. Privzeto je onemogočeno.
+      ssl_insecure:
+        name: SSL brez preverjanja certifikata
+        description: Onemogoči preverjanje verige TLS certifikatov za self-hosted certifikate. Privzeto je onemogočeno.
+      topic_prefix:
+        name: Predpona tem
+        description: Predpona, uporabljena za vse objavljene MQTT teme. Privzeto je wiimote.
+      discover_enabled:
+        name: MQTT Discovery
+        description: Omogoči ali onemogoči objavo konfiguracij MQTT Discovery za Home Assistant.
   log_level:
     name: Raven beleženja
     description: Nadzoruje, koliko podrobnosti aplikacija zapiše v dnevnik dodatka.
