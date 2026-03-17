@@ -10,13 +10,22 @@ configuration:
     description: Nome host del broker MQTT che riceve gli eventi del Wii Remote.
   mqtt_port:
     name: Porta MQTT
-    description: Porta TCP del broker MQTT.
+    description: Porta del broker. Usa 0 per i valori predefiniti automatici (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
   mqtt_username:
     name: Nome utente MQTT
     description: Nome utente opzionale per l'autenticazione al broker.
   mqtt_password:
     name: Password MQTT
     description: Password opzionale per l'autenticazione al broker.
+  mqtt_transport:
+    name: Trasporto MQTT
+    description: Modalità di trasporto MQTT. Il valore predefinito è tcp.
+  mqtt_ssl:
+    name: MQTT SSL
+    description: Abilita la crittografia TLS per MQTT. Disabilitata per impostazione predefinita.
+  mqtt_ssl_insecure:
+    name: MQTT SSL senza verifica certificato
+    description: Disabilita la verifica della catena di certificati TLS per certificati self-hosted. Disabilitata per impostazione predefinita.
   topic_prefix:
     name: Prefisso topic MQTT
     description: Prefisso usato per tutti i topic MQTT pubblicati.

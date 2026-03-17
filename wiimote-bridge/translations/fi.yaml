@@ -10,13 +10,22 @@ configuration:
     description: MQTT-välittäjän isäntänimi, joka vastaanottaa Wii Remote -tapahtumat.
   mqtt_port:
     name: MQTT-portti
-    description: MQTT-välittäjän TCP-portti.
+    description: Välittäjän portti. Käytä arvoa 0 automaattisille oletusarvoille (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
   mqtt_username:
     name: MQTT-käyttäjätunnus
     description: Valinnainen käyttäjätunnus välittäjän todennusta varten.
   mqtt_password:
     name: MQTT-salasana
     description: Valinnainen salasana välittäjän todennusta varten.
+  mqtt_transport:
+    name: MQTT-siirtotapa
+    description: MQTT-siirtotila. Oletus on tcp.
+  mqtt_ssl:
+    name: MQTT SSL
+    description: Ottaa TLS-salauksen käyttöön MQTT:lle. Oletuksena pois käytöstä.
+  mqtt_ssl_insecure:
+    name: MQTT SSL ilman varmenteen tarkistusta
+    description: Poistaa TLS-varmenneketjun tarkistuksen käytöstä itse isännöidyille varmenteille. Oletuksena pois käytöstä.
   topic_prefix:
     name: MQTT-aiheiden etuliite
     description: Etuliite, jota käytetään kaikissa julkaistuissa MQTT-aiheissa.

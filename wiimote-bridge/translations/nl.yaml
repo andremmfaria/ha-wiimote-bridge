@@ -10,13 +10,22 @@ configuration:
     description: Hostnaam van de MQTT-broker die Wii Remote-gebeurtenissen ontvangt.
   mqtt_port:
     name: MQTT-poort
-    description: TCP-poort van de MQTT-broker.
+    description: Brokerpoort. Gebruik 0 voor automatische standaardwaarden (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
   mqtt_username:
     name: MQTT-gebruikersnaam
     description: Optionele gebruikersnaam voor broker-authenticatie.
   mqtt_password:
     name: MQTT-wachtwoord
     description: Optioneel wachtwoord voor broker-authenticatie.
+  mqtt_transport:
+    name: MQTT-transport
+    description: MQTT-transportmodus. Standaard is tcp.
+  mqtt_ssl:
+    name: MQTT SSL
+    description: Schakelt TLS-versleuteling voor MQTT in. Standaard uitgeschakeld.
+  mqtt_ssl_insecure:
+    name: MQTT SSL zonder certificaatverificatie
+    description: Schakelt verificatie van de TLS-certificaatketen uit voor zelfgehoste certificaten. Standaard uitgeschakeld.
   topic_prefix:
     name: MQTT-topicprefix
     description: Prefix dat wordt gebruikt voor alle gepubliceerde MQTT-topics.

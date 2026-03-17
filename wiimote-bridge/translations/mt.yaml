@@ -10,13 +10,22 @@ configuration:
     description: L-isem tal-host tal-broker MQTT li jirċievi l-avvenimenti tal-Wii Remote.
   mqtt_port:
     name: Port MQTT
-    description: Il-port TCP tal-broker MQTT.
+    description: Port tal-broker. Uża 0 għal valuri awtomatiċi (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
   mqtt_username:
     name: Username MQTT
     description: Username opzjonali għall-awtentikazzjoni mal-broker.
   mqtt_password:
     name: Password MQTT
     description: Password opzjonali għall-awtentikazzjoni mal-broker.
+  mqtt_transport:
+    name: Trasport MQTT
+    description: Modalità ta' trasport MQTT. Il-valur awtomatiku huwa tcp.
+  mqtt_ssl:
+    name: MQTT SSL
+    description: Jippermetti kriptaġġ TLS għal MQTT. B'mod awtomatiku huwa diżattivat.
+  mqtt_ssl_insecure:
+    name: MQTT SSL mingħajr verifika taċ-ċertifikat
+    description: Jiddiżattiva l-verifika tal-katina taċ-ċertifikati TLS għal ċertifikati self-hosted. B'mod awtomatiku huwa diżattivat.
   topic_prefix:
     name: Prefiss tas-suġġetti MQTT
     description: Prefiss użat għas-suġġetti MQTT kollha ppubblikati.

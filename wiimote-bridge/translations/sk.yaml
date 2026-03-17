@@ -10,13 +10,22 @@ configuration:
     description: Názov hostiteľa MQTT brokera, ktorý prijíma udalosti Wii Remote.
   mqtt_port:
     name: MQTT port
-    description: TCP port MQTT brokera.
+    description: Port brokera. Použite 0 pre automatické predvolené hodnoty (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
   mqtt_username:
     name: MQTT používateľské meno
     description: Voliteľné používateľské meno na autentifikáciu brokera.
   mqtt_password:
     name: MQTT heslo
     description: Voliteľné heslo na autentifikáciu brokera.
+  mqtt_transport:
+    name: MQTT prenos
+    description: Režim prenosu MQTT. Predvolené je tcp.
+  mqtt_ssl:
+    name: MQTT SSL
+    description: Povolí TLS šifrovanie pre MQTT. Predvolene je vypnuté.
+  mqtt_ssl_insecure:
+    name: MQTT SSL bez overenia certifikátu
+    description: Vypne overovanie reťazca TLS certifikátu pre self-hosted certifikáty. Predvolene je vypnuté.
   topic_prefix:
     name: Prefix MQTT tém
     description: Prefix používaný pre všetky publikované MQTT témy.

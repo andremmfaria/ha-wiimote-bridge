@@ -10,13 +10,22 @@ configuration:
     description: MQTT vahendaja hostinimi, mis võtab vastu Wii Remote'i sündmused.
   mqtt_port:
     name: MQTT port
-    description: MQTT vahendaja TCP-port.
+    description: Vahendaja port. Kasuta 0 automaatsete vaikimisi väärtuste jaoks (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
   mqtt_username:
     name: MQTT kasutajanimi
     description: Valikuline kasutajanimi vahendaja autentimiseks.
   mqtt_password:
     name: MQTT parool
     description: Valikuline parool vahendaja autentimiseks.
+  mqtt_transport:
+    name: MQTT transport
+    description: MQTT transpordirežiim. Vaikimisi on tcp.
+  mqtt_ssl:
+    name: MQTT SSL
+    description: Lubab MQTT jaoks TLS-krüpteeringu. Vaikimisi on keelatud.
+  mqtt_ssl_insecure:
+    name: MQTT SSL ilma sertifikaadi kontrollita
+    description: Keelab isehostitud sertifikaatide TLS-sertifikaadiahela kontrolli. Vaikimisi on keelatud.
   topic_prefix:
     name: MQTT teema prefiks
     description: Prefiks, mida kasutatakse kõigi avaldatud MQTT teemade jaoks.

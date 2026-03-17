@@ -10,13 +10,22 @@ configuration:
     description: Ainm óstaigh an bhróicéara MQTT a fhaigheann imeachtaí Wii Remote.
   mqtt_port:
     name: Port MQTT
-    description: Port TCP an bhróicéara MQTT.
+    description: Port an bhróicéara. Úsáid 0 do réamhshocruithe uathoibríocha (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
   mqtt_username:
     name: Ainm úsáideora MQTT
     description: Ainm úsáideora roghnach le haghaidh fíordheimhnithe an bhróicéara.
   mqtt_password:
     name: Focal faire MQTT
     description: Focal faire roghnach le haghaidh fíordheimhnithe an bhróicéara.
+  mqtt_transport:
+    name: Iompar MQTT
+    description: Modh iompair MQTT. Is é tcp an réamhshocrú.
+  mqtt_ssl:
+    name: MQTT SSL
+    description: Cumasaíonn sé criptiú TLS do MQTT. Tá sé díchumasaithe de réir réamhshocraithe.
+  mqtt_ssl_insecure:
+    name: MQTT SSL gan fíorú teastais
+    description: Díchumasaíonn sé fíorú slabhra teastais TLS do theastais féin-óstáilte. Tá sé díchumasaithe de réir réamhshocraithe.
   topic_prefix:
     name: Réimír topaice MQTT
     description: Réimír a úsáidtear do gach topaic MQTT a fhoilsítear.

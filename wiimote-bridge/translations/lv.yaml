@@ -10,13 +10,22 @@ configuration:
     description: MQTT brokera resursdatora nosaukums, kas saņem Wii Remote notikumus.
   mqtt_port:
     name: MQTT ports
-    description: MQTT brokera TCP ports.
+    description: Brokera ports. Izmantojiet 0 automātiskām noklusējuma vērtībām (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
   mqtt_username:
     name: MQTT lietotājvārds
     description: Neobligāts lietotājvārds brokera autentifikācijai.
   mqtt_password:
     name: MQTT parole
     description: Neobligāta parole brokera autentifikācijai.
+  mqtt_transport:
+    name: MQTT transports
+    description: MQTT transporta režīms. Noklusējums ir tcp.
+  mqtt_ssl:
+    name: MQTT SSL
+    description: Iespējo TLS šifrēšanu MQTT savienojumam. Pēc noklusējuma ir atspējots.
+  mqtt_ssl_insecure:
+    name: MQTT SSL bez sertifikātu pārbaudes
+    description: Atspējo TLS sertifikātu ķēdes pārbaudi pašmitinātiem sertifikātiem. Pēc noklusējuma ir atspējots.
   topic_prefix:
     name: MQTT tēmu prefikss
     description: Prefikss, kas tiek izmantots visām publicētajām MQTT tēmām.

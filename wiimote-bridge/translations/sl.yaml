@@ -10,13 +10,22 @@ configuration:
     description: Ime gostitelja MQTT posrednika, ki prejema dogodke Wii Remote.
   mqtt_port:
     name: MQTT vrata
-    description: TCP vrata MQTT posrednika.
+    description: Vrata posrednika. Uporabite 0 za samodejne privzete vrednosti (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
   mqtt_username:
     name: MQTT uporabniško ime
     description: Izbirno uporabniško ime za avtentikacijo pri posredniku.
   mqtt_password:
     name: MQTT geslo
     description: Izbirno geslo za avtentikacijo pri posredniku.
+  mqtt_transport:
+    name: MQTT prenos
+    description: Način prenosa MQTT. Privzeto je tcp.
+  mqtt_ssl:
+    name: MQTT SSL
+    description: Omogoči TLS šifriranje za MQTT. Privzeto je onemogočeno.
+  mqtt_ssl_insecure:
+    name: MQTT SSL brez preverjanja certifikata
+    description: Onemogoči preverjanje verige TLS certifikatov za self-hosted certifikate. Privzeto je onemogočeno.
   topic_prefix:
     name: Predpona MQTT tem
     description: Predpona, uporabljena za vse objavljene MQTT teme.

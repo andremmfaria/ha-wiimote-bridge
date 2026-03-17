@@ -10,13 +10,22 @@ configuration:
     description: Värdnamn för MQTT-broker som tar emot Wii Remote-händelser.
   mqtt_port:
     name: MQTT-port
-    description: TCP-port för MQTT-brokern.
+    description: Brokerport. Använd 0 för automatiska standardvärden (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
   mqtt_username:
     name: MQTT-användarnamn
     description: Valfritt användarnamn för brokerautentisering.
   mqtt_password:
     name: MQTT-lösenord
     description: Valfritt lösenord för brokerautentisering.
+  mqtt_transport:
+    name: MQTT-transport
+    description: MQTT-transportläge. Standard är tcp.
+  mqtt_ssl:
+    name: MQTT SSL
+    description: Aktiverar TLS-kryptering för MQTT. Inaktiverat som standard.
+  mqtt_ssl_insecure:
+    name: MQTT SSL utan certifikatverifiering
+    description: Inaktiverar verifiering av TLS-certifikatkedjan för självhostade certifikat. Inaktiverat som standard.
   topic_prefix:
     name: MQTT-ämnesprefix
     description: Prefix som används för alla publicerade MQTT-ämnen.

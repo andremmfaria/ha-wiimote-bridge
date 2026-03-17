@@ -10,13 +10,22 @@ configuration:
     description: MQTT brokerio serverio pavadinimas, gaunantis Wii Remote įvykius.
   mqtt_port:
     name: MQTT prievadas
-    description: MQTT brokerio TCP prievadas.
+    description: Brokerio prievadas. Naudokite 0 automatiniams numatytiesiems nustatymams (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
   mqtt_username:
     name: MQTT naudotojo vardas
     description: Pasirenkamas naudotojo vardas brokerio autentifikacijai.
   mqtt_password:
     name: MQTT slaptažodis
     description: Pasirenkamas slaptažodis brokerio autentifikacijai.
+  mqtt_transport:
+    name: MQTT perdavimas
+    description: MQTT perdavimo režimas. Numatytasis yra tcp.
+  mqtt_ssl:
+    name: MQTT SSL
+    description: Įjungia TLS šifravimą MQTT ryšiui. Pagal numatymą išjungta.
+  mqtt_ssl_insecure:
+    name: MQTT SSL be sertifikato tikrinimo
+    description: Išjungia TLS sertifikatų grandinės tikrinimą savarankiškai talpinamiems sertifikatams. Pagal numatymą išjungta.
   topic_prefix:
     name: MQTT temų priešdėlis
     description: Priešdėlis, naudojamas visoms skelbiamoms MQTT temoms.

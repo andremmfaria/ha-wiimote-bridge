@@ -10,13 +10,22 @@ configuration:
     description: Naziv hosta MQTT brokera koji prima događaje Wii Remote kontrolera.
   mqtt_port:
     name: MQTT priključak
-    description: TCP priključak MQTT brokera.
+    description: Port brokera. Koristite 0 za automatske zadane vrijednosti (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
   mqtt_username:
     name: MQTT korisničko ime
     description: Neobavezno korisničko ime za autentikaciju na brokeru.
   mqtt_password:
     name: MQTT lozinka
     description: Neobavezna lozinka za autentikaciju na brokeru.
+  mqtt_transport:
+    name: MQTT prijenos
+    description: Način MQTT prijenosa. Zadano je tcp.
+  mqtt_ssl:
+    name: MQTT SSL
+    description: Omogućuje TLS enkripciju za MQTT. Zadano je onemogućeno.
+  mqtt_ssl_insecure:
+    name: MQTT SSL bez provjere certifikata
+    description: Onemogućuje provjeru lanca TLS certifikata za self-hosted certifikate. Zadano je onemogućeno.
   topic_prefix:
     name: Prefiks MQTT tema
     description: Prefiks koji se koristi za sve objavljene MQTT teme.

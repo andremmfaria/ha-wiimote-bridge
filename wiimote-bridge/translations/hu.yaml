@@ -10,13 +10,22 @@ configuration:
     description: Annak az MQTT brokernek a hosztneve, amely a Wii Remote eseményeit fogadja.
   mqtt_port:
     name: MQTT port
-    description: Az MQTT broker TCP portja.
+    description: Broker port. A 0 automatikus alapértékeket jelent (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
   mqtt_username:
     name: MQTT felhasználónév
     description: Opcionális felhasználónév a broker hitelesítéséhez.
   mqtt_password:
     name: MQTT jelszó
     description: Opcionális jelszó a broker hitelesítéséhez.
+  mqtt_transport:
+    name: MQTT átvitel
+    description: MQTT átviteli mód. Alapértelmezett: tcp.
+  mqtt_ssl:
+    name: MQTT SSL
+    description: TLS titkosítást engedélyez az MQTT-hez. Alapértelmezésben letiltva.
+  mqtt_ssl_insecure:
+    name: MQTT SSL tanúsítvány-ellenőrzés nélkül
+    description: Letiltja a TLS tanúsítványlánc ellenőrzését saját hosztolású tanúsítványokhoz. Alapértelmezésben letiltva.
   topic_prefix:
     name: MQTT témakör előtag
     description: Az összes közzétett MQTT témakörhöz használt előtag.

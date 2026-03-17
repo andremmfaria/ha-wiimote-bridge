@@ -10,13 +10,22 @@ configuration:
     description: Името на хоста на MQTT брокера, който получава събитията от Wii Remote.
   mqtt_port:
     name: MQTT порт
-    description: TCP портът на MQTT брокера.
+    description: Порт на брокера. Използвайте 0 за автоматични стойности по подразбиране (tcp 1883, websockets 1884, tcp/ssl 8883, websockets/ssl 8884).
   mqtt_username:
     name: MQTT потребителско име
     description: Незадължително потребителско име за удостоверяване към брокера.
   mqtt_password:
     name: MQTT парола
     description: Незадължителна парола за удостоверяване към брокера.
+  mqtt_transport:
+    name: MQTT транспорт
+    description: Режим на MQTT транспорта. По подразбиране е tcp.
+  mqtt_ssl:
+    name: MQTT SSL
+    description: Включва TLS шифроване за MQTT. По подразбиране е изключено.
+  mqtt_ssl_insecure:
+    name: MQTT SSL без проверка на сертификата
+    description: Изключва проверката на TLS сертификатната верига за самостоятелно хоствани сертификати. По подразбиране е изключено.
   topic_prefix:
     name: MQTT префикс на темите
     description: Префикс, използван за всички публикувани MQTT теми.
