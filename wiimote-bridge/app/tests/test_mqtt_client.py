@@ -1,3 +1,5 @@
+import threading
+
 from wiimote_bridge.transport import mqtt_client
 from wiimote_bridge.utils.config import RadioConfig, Settings
 
@@ -248,8 +250,11 @@ def test_connect_mqtt_on_connect_publishes_discovery(monkeypatch):
 
     monkeypatch.setattr(mqtt_client.mqtt, "Client", FakeClient)
 
+    done = threading.Event()
+
     def fake_publish_discovery(client, topic_prefix, wiimote_ids, discovery_prefix="homeassistant"):
         called["args"] = (topic_prefix, tuple(wiimote_ids), discovery_prefix)
+        done.set()
         return {"controllers": 2, "entities": 26, "failed": 0}
 
     monkeypatch.setattr(mqtt_client, "publish_discovery_configs", fake_publish_discovery)
@@ -272,6 +277,7 @@ def test_connect_mqtt_on_connect_publishes_discovery(monkeypatch):
     )
 
     client.on_connect(client, None, None, 0, None)
+    done.wait(timeout=2)
 
     assert called["args"] == ("wiimote", (1, 9), "homeassistant")
 

@@ -1,5 +1,6 @@
 import json
 import ssl
+import threading
 import time
 from collections.abc import Iterable
 from typing import Any
@@ -93,23 +94,27 @@ def connect_mqtt_with_discovery(
                 len(wiimote_ids),
                 expected_entities,
             )
-            result = publish_discovery_configs(
-                client,
-                discovery_topic_prefix,
-                wiimote_ids,
-                discovery_prefix=discovery_prefix,
-            )
-            if result["failed"] > 0:
-                LOGGER.warning(
-                    "MQTT discovery publish completed with failures: %s/%s entities failed",
-                    result["failed"],
-                    result["entities"],
+
+            def _run_discovery() -> None:
+                result = publish_discovery_configs(
+                    client,
+                    discovery_topic_prefix,
+                    wiimote_ids,
+                    discovery_prefix=discovery_prefix,
                 )
-            else:
-                LOGGER.info(
-                    "MQTT discovery publish completed successfully: %s entities announced",
-                    result["entities"],
-                )
+                if result["failed"] > 0:
+                    LOGGER.warning(
+                        "MQTT discovery publish completed with failures: %s/%s entities failed",
+                        result["failed"],
+                        result["entities"],
+                    )
+                else:
+                    LOGGER.info(
+                        "MQTT discovery publish completed successfully: %s entities announced",
+                        result["entities"],
+                    )
+
+            threading.Thread(target=_run_discovery, daemon=True, name="mqtt-discovery").start()
             return
 
         LOGGER.warning("MQTT connection failed: %s", mqtt.error_string(reason_code_value))
