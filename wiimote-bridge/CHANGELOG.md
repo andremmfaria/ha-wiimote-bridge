@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.1
+
+- Fix MQTT Discovery timing by publishing discovery configs only after a confirmed MQTT connection (`on_connect`) instead of immediately after async connect startup.
+- Republish retained MQTT Discovery configs on reconnect so entities recover after broker outages/restarts without duplicate entity creation.
+- Add discovery publication observability with startup/reconnect logs and per-run entity publish success/failure counts.
+- Improve Home Assistant discovery metadata consistency by simplifying device metadata and keeping stable retained discovery topics as source of truth.
+- Add MQTT transport and security options: `mqtt_transport` (`tcp` or `websockets`), `mqtt_ssl`, and `mqtt_ssl_insecure`.
+- Add mode-based MQTT auto-port defaults when `mqtt_port: 0`: `tcp=1883`, `websockets=1884`, `tcp/ssl=8883`, `websockets/ssl=8884`.
+- Wire new MQTT options end-to-end from add-on `config.yaml` through `run.sh` into runtime settings.
+- Update tests for discovery reconnect behavior, MQTT transport/TLS configuration, and auto-port selection.
+- Update documentation and release checklist to describe discovery behavior, retained-topic verification, entities vs raw topics, and new MQTT security/transport options.
+- Add translation entries for the new MQTT options across all locale files.
+
 ## 0.4.0
 
 - Replace single-radio config (`serial_port`, `serial_baud`, `controller_id`) with a `radios` list so one add-on instance can manage multiple ESP32 radios.

@@ -659,21 +659,21 @@ Use this procedure to verify discovery topics are present and durable.
 1. Start the add-on and confirm discovery publication logs appear after MQTT connects.
 2. Query retained discovery config topics on the broker:
 
-```bash
-mosquitto_sub -h <broker-host> -p <broker-port> -u <user> -P <pass> -v -R -t 'homeassistant/+/wiimote_+/+/config'
-```
+    ```bash
+    mosquitto_sub -h <broker-host> -p <broker-port> -u <user> -P <pass> -v -R -t 'homeassistant/+/wiimote_+/+/config'
+    ```
 
 3. Confirm each configured controller has:
 
-- one connectivity binary sensor discovery topic
-- one battery sensor discovery topic
-- one discovery topic per supported button
+   - one connectivity binary sensor discovery topic
+   - one battery sensor discovery topic
+   - one discovery topic per supported button
 
 4. Confirm payload state topics match runtime topics:
 
-- `<topic_prefix>/<controller_id>/status/connected`
-- `<topic_prefix>/<controller_id>/status/battery`
-- `<topic_prefix>/<controller_id>/button/<BUTTON>`
+   - `<topic_prefix>/<controller_id>/status/connected`
+   - `<topic_prefix>/<controller_id>/status/battery`
+   - `<topic_prefix>/<controller_id>/button/<BUTTON>`
 
 5. Restart Home Assistant only and confirm entities are rebuilt from retained discovery topics without forcing add-on restart.
 6. Restart the MQTT broker and confirm discovery gets republished after reconnect.

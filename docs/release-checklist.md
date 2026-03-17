@@ -61,9 +61,9 @@ Use this checklist before tagging a new add-on release.
 
 1. Query retained discovery topics:
 
-```bash
-mosquitto_sub -h <broker-host> -p <broker-port> -u <user> -P <pass> -v -R -t 'homeassistant/+/wiimote_+/+/config'
-```
+    ```bash
+    mosquitto_sub -h <broker-host> -p <broker-port> -u <user> -P <pass> -v -R -t 'homeassistant/+/wiimote_+/+/config'
+    ```
 
 2. Verify retained config topics exist for connected, battery, and all supported buttons for each controller.
 3. Validate payload state topics map to expected runtime topics.
@@ -72,9 +72,9 @@ mosquitto_sub -h <broker-host> -p <broker-port> -u <user> -P <pass> -v -R -t 'ho
 
 1. Subscribe to runtime topics:
 
-```bash
-mosquitto_sub -h <broker-host> -p <broker-port> -u <user> -P <pass> -v -t 'wiimote/#'
-```
+    ```bash
+    mosquitto_sub -h <broker-host> -p <broker-port> -u <user> -P <pass> -v -t 'wiimote/#'
+    ```
 
 2. Verify these topic families are active:
    - `<topic_prefix>/<id>/button/<BUTTON>`

@@ -119,15 +119,15 @@ Then:
 
 3. Button events will appear in MQTT topics such as:
 
-```text
-wiimote/1/button/A
-wiimote/1/button/B
-wiimote/1/button/PLUS
-wiimote/1/status/connected
-wiimote/1/status/heartbeat
-wiimote/1/status/battery
-wiimote/1/events/status
-```
+    ```text
+    wiimote/1/button/A
+    wiimote/1/button/B
+    wiimote/1/button/PLUS
+    wiimote/1/status/connected
+    wiimote/1/status/heartbeat
+    wiimote/1/status/battery
+    wiimote/1/events/status
+    ```
 
 4. Home Assistant MQTT Discovery entities are created automatically under the default `homeassistant` discovery prefix:
 
@@ -156,21 +156,21 @@ Use this checklist after startup and after reconnect tests.
 
 1. Subscribe to retained discovery topics from a shell on your MQTT host:
 
-```bash
-mosquitto_sub -h <broker-host> -p <broker-port> -u <user> -P <pass> -v -R -t 'homeassistant/+/wiimote_+/+/config'
-```
+    ```bash
+    mosquitto_sub -h <broker-host> -p <broker-port> -u <user> -P <pass> -v -R -t 'homeassistant/+/wiimote_+/+/config'
+    ```
 
 2. Confirm retained config topics exist for each configured controller ID:
 
-- one `connected` binary sensor topic
-- one `battery` sensor topic
-- one button binary sensor topic per supported button
+    - one `connected` binary sensor topic
+    - one `battery` sensor topic
+    - one button binary sensor topic per supported button
 
 3. Confirm payloads reference expected operational topics:
 
-- `<topic_prefix>/<controller_id>/status/connected`
-- `<topic_prefix>/<controller_id>/status/battery`
-- `<topic_prefix>/<controller_id>/button/<BUTTON>`
+    - `<topic_prefix>/<controller_id>/status/connected`
+    - `<topic_prefix>/<controller_id>/status/battery`
+    - `<topic_prefix>/<controller_id>/button/<BUTTON>`
 
 4. Restart Home Assistant (not the add-on) and confirm entities reappear from retained config topics.
 
