@@ -1,4 +1,5 @@
 import json
+import ssl
 import time
 from collections.abc import Iterable
 from typing import Any
@@ -47,7 +48,18 @@ def connect_mqtt_with_discovery(
         callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
         client_id="wiimote-serial-bridge",
         clean_session=True,
+        transport=settings.mqtt_transport,
     )
+
+    LOGGER.info("MQTT transport mode: %s", settings.mqtt_transport)
+
+    if settings.mqtt_ssl:
+        cert_reqs = ssl.CERT_NONE if settings.mqtt_ssl_insecure else ssl.CERT_REQUIRED
+        client.tls_set(cert_reqs=cert_reqs)
+        client.tls_insecure_set(settings.mqtt_ssl_insecure)
+        LOGGER.info("MQTT TLS enabled")
+        if settings.mqtt_ssl_insecure:
+            LOGGER.warning("MQTT TLS certificate verification is disabled")
 
     def _reason_code_value(reason_code: Any) -> int:
         if isinstance(reason_code, int):

@@ -78,6 +78,9 @@ mqtt_host: core-mosquitto
 mqtt_port: 1883
 mqtt_username: ""
 mqtt_password: ""
+mqtt_transport: tcp
+mqtt_ssl: false
+mqtt_ssl_insecure: false
 topic_prefix: wiimote
 log_level: info
 ```
@@ -92,6 +95,9 @@ log_level: info
 | `mqtt_port` | Broker TCP port |
 | `mqtt_username` | Optional MQTT username |
 | `mqtt_password` | Optional MQTT password |
+| `mqtt_transport` | MQTT transport: `tcp` or `websockets` |
+| `mqtt_ssl` | Enable TLS for MQTT connection |
+| `mqtt_ssl_insecure` | Disable TLS certificate verification (self-hosted certs) |
 | `topic_prefix` | Base topic prefix for all MQTT publications |
 | `log_level` | Application log verbosity: `debug`, `info`, `warning`, or `error` |
 
@@ -332,6 +338,8 @@ Verify:
 1. `mqtt_host` is reachable.
 2. `mqtt_port` is correct.
 3. Credentials are valid if authentication is enabled.
+4. `mqtt_transport` matches broker listener type (`tcp` vs `websockets`).
+5. If `mqtt_ssl: true`, use valid certs or set `mqtt_ssl_insecure: true` for self-hosted cert chains.
 
 During temporary broker outages or reconnects, the bridge skips MQTT publishes and logs a warning at most once every 15 seconds until connectivity returns.
 

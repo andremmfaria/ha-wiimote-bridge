@@ -79,6 +79,9 @@ mqtt_host: core-mosquitto
 mqtt_port: 1883
 mqtt_username: ""
 mqtt_password: ""
+mqtt_transport: tcp
+mqtt_ssl: false
+mqtt_ssl_insecure: false
 topic_prefix: wiimote
 log_level: info
 ```
@@ -151,6 +154,43 @@ Leave this empty if your broker accepts anonymous clients on the configured netw
 Optional MQTT password.
 
 Only used when `mqtt_username` is non-empty.
+
+#### `mqtt_transport`
+
+MQTT network transport.
+
+Allowed values:
+
+- `tcp`
+- `websockets`
+
+Default:
+
+```text
+tcp
+```
+
+#### `mqtt_ssl`
+
+Enables TLS for MQTT connections.
+
+Default:
+
+```text
+false
+```
+
+#### `mqtt_ssl_insecure`
+
+Disables TLS certificate chain verification.
+
+Use this only for self-hosted certificates when broker CA validation is not available in the container trust store.
+
+Default:
+
+```text
+false
+```
 
 #### `topic_prefix`
 
@@ -560,6 +600,8 @@ Verify:
 2. `mqtt_port` is correct.
 3. `mqtt_username` and `mqtt_password` are valid if authentication is required.
 4. The broker accepts connections from the add-on network.
+5. `mqtt_transport` matches your broker listener type (`tcp` or `websockets`).
+6. If `mqtt_ssl` is enabled, certificates validate or `mqtt_ssl_insecure` is explicitly enabled for self-hosted certs.
 
 During temporary MQTT outages or reconnects, warning lines like the following are expected:
 

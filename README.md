@@ -88,8 +88,17 @@ radios:
 mqtt_host: core-mosquitto
 discover_enabled: true
 mqtt_port: 1883
+mqtt_transport: tcp
+mqtt_ssl: false
+mqtt_ssl_insecure: false
 topic_prefix: wiimote
 ```
+
+MQTT transport/security knobs:
+
+- `mqtt_transport`: `tcp` or `websockets`
+- `mqtt_ssl`: enable TLS for MQTT connection
+- `mqtt_ssl_insecure`: disable TLS certificate chain verification (useful for self-hosted certs)
 
 Each entry in `radios` defines one ESP32 radio. Add more entries for each additional ESP32 connected to the host.
 

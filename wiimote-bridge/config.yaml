@@ -29,6 +29,9 @@ options:
   mqtt_port: 1883
   mqtt_username: ""
   mqtt_password: ""
+  mqtt_transport: "tcp"
+  mqtt_ssl: false
+  mqtt_ssl_insecure: false
   topic_prefix: "wiimote"
   log_level: "info"
 
@@ -42,5 +45,8 @@ schema:
   mqtt_port: port
   mqtt_username: str
   mqtt_password: password
+  mqtt_transport: list(tcp|websockets)
+  mqtt_ssl: bool
+  mqtt_ssl_insecure: bool
   topic_prefix: str
   log_level: list(debug|info|warning|error)

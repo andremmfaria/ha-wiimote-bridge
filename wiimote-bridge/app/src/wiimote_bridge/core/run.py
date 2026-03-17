@@ -98,6 +98,9 @@ def run() -> int:
         )
     LOGGER.info("MQTT broker: %s:%s", settings.mqtt_host, settings.mqtt_port)
     LOGGER.debug("MQTT username configured: %s", bool(settings.mqtt_username))
+    LOGGER.info("MQTT transport: %s", settings.mqtt_transport)
+    LOGGER.info("MQTT SSL enabled: %s", settings.mqtt_ssl)
+    LOGGER.info("MQTT SSL insecure cert verification: %s", settings.mqtt_ssl_insecure)
     LOGGER.debug("Topic prefix: %s", settings.topic_prefix)
     LOGGER.debug("MQTT discovery enabled: %s", settings.discover_enabled)
 

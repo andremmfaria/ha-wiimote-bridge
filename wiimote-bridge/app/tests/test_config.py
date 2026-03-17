@@ -10,6 +10,9 @@ def test_load_settings_from_environment(monkeypatch):
     monkeypatch.setenv("MQTT_PORT", "2883")
     monkeypatch.setenv("MQTT_USERNAME", "user")
     monkeypatch.setenv("MQTT_PASSWORD", "secret")
+    monkeypatch.setenv("MQTT_TRANSPORT", "websockets")
+    monkeypatch.setenv("MQTT_SSL", "true")
+    monkeypatch.setenv("MQTT_SSL_INSECURE", "true")
     monkeypatch.setenv("TOPIC_PREFIX", "wm")
     monkeypatch.setenv("LOG_LEVEL", "DEBUG")
     monkeypatch.setenv("DISCOVER_ENABLED", "false")
@@ -24,6 +27,9 @@ def test_load_settings_from_environment(monkeypatch):
     assert settings.mqtt_port == 2883
     assert settings.mqtt_username == "user"
     assert settings.mqtt_password == "secret"
+    assert settings.mqtt_transport == "websockets"
+    assert settings.mqtt_ssl is True
+    assert settings.mqtt_ssl_insecure is True
     assert settings.topic_prefix == "wm"
     assert settings.log_level == "debug"
     assert settings.discover_enabled is False
@@ -43,6 +49,17 @@ def test_load_settings_multiple_radios(monkeypatch):
     assert settings.radios[1].port == "/dev/ttyUSB1"
     assert settings.radios[1].controller_id == 2
     assert settings.discover_enabled is True
+    assert settings.mqtt_transport == "tcp"
+    assert settings.mqtt_ssl is False
+    assert settings.mqtt_ssl_insecure is False
+
+
+def test_load_settings_invalid_transport_falls_back_to_tcp(monkeypatch):
+    monkeypatch.setenv("MQTT_TRANSPORT", "bad-value")
+
+    settings = load_settings()
+
+    assert settings.mqtt_transport == "tcp"
 
 
 def test_load_settings_accepts_single_radio_object(monkeypatch):

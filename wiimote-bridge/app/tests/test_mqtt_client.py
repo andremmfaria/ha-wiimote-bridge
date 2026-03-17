@@ -150,8 +150,8 @@ def test_connect_mqtt_with_discovery_sets_auth_and_starts_loop(monkeypatch):
     calls = {}
 
     class FakeClient:
-        def __init__(self, callback_api_version, client_id, clean_session):
-            calls["init"] = (callback_api_version, client_id, clean_session)
+        def __init__(self, callback_api_version, client_id, clean_session, transport):
+            calls["init"] = (callback_api_version, client_id, clean_session, transport)
             self.on_connect = None
             self.on_disconnect = None
 
@@ -188,6 +188,7 @@ def test_connect_mqtt_with_discovery_sets_auth_and_starts_loop(monkeypatch):
         mqtt_client.mqtt.CallbackAPIVersion.VERSION2,
         "wiimote-serial-bridge",
         True,
+        "tcp",
     )
     assert calls["auth"] == ("u", "p")
     assert calls["connect"] == ("broker.local", 2883, 60)
@@ -198,7 +199,7 @@ def test_connect_mqtt_with_discovery_sets_auth_and_starts_loop(monkeypatch):
 
 def test_connect_mqtt_on_disconnect_accepts_v2_signature(monkeypatch):
     class FakeClient:
-        def __init__(self, callback_api_version, client_id, clean_session):
+        def __init__(self, callback_api_version, client_id, clean_session, transport):
             self.on_connect = None
             self.on_disconnect = None
 
@@ -235,7 +236,7 @@ def test_connect_mqtt_on_connect_publishes_discovery(monkeypatch):
     called = {}
 
     class FakeClient:
-        def __init__(self, callback_api_version, client_id, clean_session):
+        def __init__(self, callback_api_version, client_id, clean_session, transport):
             self.on_connect = None
             self.on_disconnect = None
 
@@ -273,6 +274,55 @@ def test_connect_mqtt_on_connect_publishes_discovery(monkeypatch):
     client.on_connect(client, None, None, 0, None)
 
     assert called["args"] == ("wiimote", (1, 9), "homeassistant")
+
+
+def test_connect_mqtt_with_ssl_and_insecure_cert_verification(monkeypatch):
+    calls = {}
+
+    class FakeClient:
+        def __init__(self, callback_api_version, client_id, clean_session, transport):
+            calls["init"] = (callback_api_version, client_id, clean_session, transport)
+            self.on_connect = None
+            self.on_disconnect = None
+
+        def connect(self, host, port, keepalive):
+            calls["connect"] = (host, port, keepalive)
+
+        def loop_start(self):
+            calls["loop_start"] = True
+
+        def tls_set(self, cert_reqs=None):
+            calls["tls_set"] = cert_reqs
+
+        def tls_insecure_set(self, value):
+            calls["tls_insecure_set"] = value
+
+    monkeypatch.setattr(mqtt_client.mqtt, "Client", FakeClient)
+
+    settings = Settings(
+        radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
+        discover_enabled=True,
+        mqtt_host="broker.local",
+        mqtt_port=8883,
+        mqtt_username="",
+        mqtt_password="",
+        topic_prefix="wiimote",
+        mqtt_transport="websockets",
+        mqtt_ssl=True,
+        mqtt_ssl_insecure=True,
+    )
+
+    client = mqtt_client.connect_mqtt_with_discovery(
+        settings,
+        discovery_enabled=False,
+        discovery_topic_prefix="wiimote",
+        discovery_wiimote_ids=(),
+    )
+
+    assert client is not None
+    assert calls["init"][3] == "websockets"
+    assert calls["tls_set"] == mqtt_client.ssl.CERT_NONE
+    assert calls["tls_insecure_set"] is True
 
 
 def test_mqtt_publish_waits_for_publish(monkeypatch):

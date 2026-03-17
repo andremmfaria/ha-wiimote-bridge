@@ -21,6 +21,9 @@ class Settings:
     mqtt_username: str
     mqtt_password: str
     topic_prefix: str
+    mqtt_transport: str = "tcp"
+    mqtt_ssl: bool = False
+    mqtt_ssl_insecure: bool = False
     log_level: str = "info"
 
 
@@ -72,6 +75,13 @@ def _parse_radios(raw_value: object) -> tuple[RadioConfig, ...]:
     return tuple(radios)
 
 
+def _parse_mqtt_transport(value: object) -> str:
+    transport = str(value).strip().lower()
+    if transport in {"tcp", "websockets"}:
+        return transport
+    return "tcp"
+
+
 def load_settings() -> Settings:
     settings = Dynaconf(environments=False, envvar_prefix=False)
 
@@ -85,6 +95,9 @@ def load_settings() -> Settings:
         mqtt_port=int(settings.get("MQTT_PORT", 1883)),
         mqtt_username=settings.get("MQTT_USERNAME", ""),
         mqtt_password=settings.get("MQTT_PASSWORD", ""),
+        mqtt_transport=_parse_mqtt_transport(settings.get("MQTT_TRANSPORT", "tcp")),
+        mqtt_ssl=_as_bool(settings.get("MQTT_SSL", "false"), default=False),
+        mqtt_ssl_insecure=_as_bool(settings.get("MQTT_SSL_INSECURE", "false"), default=False),
         topic_prefix=settings.get("TOPIC_PREFIX", "wiimote"),
         log_level=str(settings.get("LOG_LEVEL", "info")).lower(),
     )
