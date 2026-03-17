@@ -76,7 +76,7 @@ radios:
     controller_id: 1
 discover_enabled: true
 mqtt_host: core-mosquitto
-mqtt_port: 1883
+mqtt_port: 0
 mqtt_username: ""
 mqtt_password: ""
 mqtt_transport: tcp
@@ -140,8 +140,15 @@ TCP port used to connect to the MQTT broker.
 Default:
 
 ```text
-1883
+0
 ```
+
+`0` means auto-select based on transport/TLS mode:
+
+- `tcp` + `mqtt_ssl: false` -> `1883`
+- `tcp` + `mqtt_ssl: true` -> `8883`
+- `websockets` + `mqtt_ssl: false` -> `1884`
+- `websockets` + `mqtt_ssl: true` -> `8884`
 
 #### `mqtt_username`
 

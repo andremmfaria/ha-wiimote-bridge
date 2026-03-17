@@ -26,6 +26,25 @@ MQTT_SSL_INSECURE="$(bashio::config 'mqtt_ssl_insecure')"
 TOPIC_PREFIX="$(bashio::config 'topic_prefix')"
 LOG_LEVEL="$(bashio::config 'log_level')"
 
+if [[ -z "${MQTT_PORT}" || "${MQTT_PORT}" == "0" ]]; then
+	transport_normalized="${MQTT_TRANSPORT,,}"
+	ssl_normalized="${MQTT_SSL,,}"
+
+	if [[ "${transport_normalized}" == "websockets" ]]; then
+		if [[ "${ssl_normalized}" == "true" ]]; then
+			MQTT_PORT="8884"
+		else
+			MQTT_PORT="1884"
+		fi
+	else
+		if [[ "${ssl_normalized}" == "true" ]]; then
+			MQTT_PORT="8883"
+		else
+			MQTT_PORT="1883"
+		fi
+	fi
+fi
+
 bashio::log.info "Starting WiiMote Bridge"
 bashio::log.info "Application log level: ${LOG_LEVEL}"
 bashio::log.info "MQTT discovery enabled: ${DISCOVER_ENABLED}"

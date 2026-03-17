@@ -82,21 +82,37 @@ def _parse_mqtt_transport(value: object) -> str:
     return "tcp"
 
 
+def _default_mqtt_port(transport: str, tls_enabled: bool) -> int:
+    if transport == "websockets":
+        return 8884 if tls_enabled else 1884
+    return 8883 if tls_enabled else 1883
+
+
 def load_settings() -> Settings:
     settings = Dynaconf(environments=False, envvar_prefix=False)
 
     radios_raw = os.environ.get("RADIOS", _DEFAULT_RADIOS)
     radios = _parse_radios(radios_raw)
+    mqtt_transport = _parse_mqtt_transport(settings.get("MQTT_TRANSPORT", "tcp"))
+    mqtt_ssl = _as_bool(settings.get("MQTT_SSL", "false"), default=False)
+
+    configured_port_raw = settings.get("MQTT_PORT", "0")
+    try:
+        configured_port = int(configured_port_raw)
+    except (TypeError, ValueError):
+        configured_port = 0
+
+    mqtt_port = configured_port if configured_port > 0 else _default_mqtt_port(mqtt_transport, mqtt_ssl)
 
     return Settings(
         radios=radios,
         discover_enabled=_as_bool(settings.get("DISCOVER_ENABLED", "true"), default=True),
         mqtt_host=settings.get("MQTT_HOST", "core-mosquitto"),
-        mqtt_port=int(settings.get("MQTT_PORT", 1883)),
+        mqtt_port=mqtt_port,
         mqtt_username=settings.get("MQTT_USERNAME", ""),
         mqtt_password=settings.get("MQTT_PASSWORD", ""),
-        mqtt_transport=_parse_mqtt_transport(settings.get("MQTT_TRANSPORT", "tcp")),
-        mqtt_ssl=_as_bool(settings.get("MQTT_SSL", "false"), default=False),
+        mqtt_transport=mqtt_transport,
+        mqtt_ssl=mqtt_ssl,
         mqtt_ssl_insecure=_as_bool(settings.get("MQTT_SSL_INSECURE", "false"), default=False),
         topic_prefix=settings.get("TOPIC_PREFIX", "wiimote"),
         log_level=str(settings.get("LOG_LEVEL", "info")).lower(),

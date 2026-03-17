@@ -87,12 +87,19 @@ radios:
     controller_id: 1
 mqtt_host: core-mosquitto
 discover_enabled: true
-mqtt_port: 1883
+mqtt_port: 0
 mqtt_transport: tcp
 mqtt_ssl: false
 mqtt_ssl_insecure: false
 topic_prefix: wiimote
 ```
+
+Set `mqtt_port: 0` to auto-select the default port from transport/security mode:
+
+- `tcp` + `mqtt_ssl: false` -> `1883`
+- `tcp` + `mqtt_ssl: true` -> `8883`
+- `websockets` + `mqtt_ssl: false` -> `1884`
+- `websockets` + `mqtt_ssl: true` -> `8884`
 
 MQTT transport/security knobs:
 

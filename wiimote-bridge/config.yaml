@@ -26,7 +26,7 @@ options:
       controller_id: 1
   discover_enabled: true
   mqtt_host: "core-mosquitto"
-  mqtt_port: 1883
+  mqtt_port: 0
   mqtt_username: ""
   mqtt_password: ""
   mqtt_transport: "tcp"
@@ -42,7 +42,7 @@ schema:
       controller_id: int
   discover_enabled: bool
   mqtt_host: str
-  mqtt_port: port
+  mqtt_port: int
   mqtt_username: str
   mqtt_password: password
   mqtt_transport: list(tcp|websockets)

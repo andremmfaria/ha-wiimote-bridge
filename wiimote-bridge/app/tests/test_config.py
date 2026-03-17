@@ -62,6 +62,46 @@ def test_load_settings_invalid_transport_falls_back_to_tcp(monkeypatch):
     assert settings.mqtt_transport == "tcp"
 
 
+def test_load_settings_default_port_tcp_without_tls(monkeypatch):
+    monkeypatch.setenv("MQTT_TRANSPORT", "tcp")
+    monkeypatch.setenv("MQTT_SSL", "false")
+    monkeypatch.setenv("MQTT_PORT", "0")
+
+    settings = load_settings()
+
+    assert settings.mqtt_port == 1883
+
+
+def test_load_settings_default_port_tcp_with_tls(monkeypatch):
+    monkeypatch.setenv("MQTT_TRANSPORT", "tcp")
+    monkeypatch.setenv("MQTT_SSL", "true")
+    monkeypatch.setenv("MQTT_PORT", "0")
+
+    settings = load_settings()
+
+    assert settings.mqtt_port == 8883
+
+
+def test_load_settings_default_port_websocket_without_tls(monkeypatch):
+    monkeypatch.setenv("MQTT_TRANSPORT", "websockets")
+    monkeypatch.setenv("MQTT_SSL", "false")
+    monkeypatch.setenv("MQTT_PORT", "0")
+
+    settings = load_settings()
+
+    assert settings.mqtt_port == 1884
+
+
+def test_load_settings_default_port_websocket_with_tls(monkeypatch):
+    monkeypatch.setenv("MQTT_TRANSPORT", "websockets")
+    monkeypatch.setenv("MQTT_SSL", "true")
+    monkeypatch.setenv("MQTT_PORT", "0")
+
+    settings = load_settings()
+
+    assert settings.mqtt_port == 8884
+
+
 def test_load_settings_accepts_single_radio_object(monkeypatch):
     monkeypatch.setenv(
         "RADIOS",

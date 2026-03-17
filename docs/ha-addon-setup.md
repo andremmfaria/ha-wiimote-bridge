@@ -75,7 +75,7 @@ radios:
     controller_id: 1
 discover_enabled: true
 mqtt_host: core-mosquitto
-mqtt_port: 1883
+mqtt_port: 0
 mqtt_username: ""
 mqtt_password: ""
 mqtt_transport: tcp
@@ -85,6 +85,11 @@ topic_prefix: wiimote
 log_level: info
 ```
 
+Set `mqtt_port: 0` to auto-select mode defaults:
+
+- TCP: `1883` (`8883` when `mqtt_ssl: true`)
+- WebSockets: `1884` (`8884` when `mqtt_ssl: true`)
+
 ### Option Reference
 
 | Option | Meaning |
@@ -92,7 +97,7 @@ log_level: info
 | `radios` | List of ESP32 radios: each has `port`, `baud`, and `controller_id` |
 | `discover_enabled` | Enable/disable Home Assistant MQTT Discovery publishing |
 | `mqtt_host` | Hostname or IP of the MQTT broker |
-| `mqtt_port` | Broker TCP port |
+| `mqtt_port` | Broker port (`0` = auto default by transport/TLS mode) |
 | `mqtt_username` | Optional MQTT username |
 | `mqtt_password` | Optional MQTT password |
 | `mqtt_transport` | MQTT transport: `tcp` or `websockets` |
