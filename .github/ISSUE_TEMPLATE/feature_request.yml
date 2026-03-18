@@ -1,0 +1,65 @@
+name: Feature request
+description: Suggest an improvement or new capability.
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea.
+
+        Share the use case first, then describe the proposed solution.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One-sentence feature summary.
+      placeholder: Add a Home Assistant automation blueprint for common Wii Remote actions.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What are you trying to achieve?
+      placeholder: |
+        I want to set up common button automations without writing YAML from scratch.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe behavior, API, or UX changes.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Home Assistant add-on
+        - ESP32 firmware
+        - MQTT discovery
+        - Documentation
+        - CI / release pipeline
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: List workarounds or other approaches tried.
+  - type: textarea
+    id: examples
+    attributes:
+      label: Extra context
+      description: Links, mockups, logs, or examples.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues and did not find a duplicate feature request.
+          required: true

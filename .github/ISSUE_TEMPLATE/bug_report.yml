@@ -1,0 +1,102 @@
+name: Bug report
+description: Report a reproducible problem with the add-on, firmware, or docs.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug.
+
+        Please include enough detail for maintainers to reproduce the issue quickly.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One-sentence description of the problem.
+      placeholder: Wii Remote buttons do not publish MQTT topics after reconnect.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Home Assistant add-on
+        - ESP32 firmware
+        - MQTT discovery
+        - Documentation
+        - CI / release pipeline
+    validations:
+      required: true
+  - type: input
+    id: addon_version
+    attributes:
+      label: Add-on version
+      description: Version from wiimote-bridge/config.yaml or installed add-on.
+      placeholder: 0.4.1
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      placeholder: 2026.3.0
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware
+      description: Board model and host details.
+      placeholder: ESP32-WROOM-32, Home Assistant OS on Raspberry Pi 4
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Add-on configuration
+      description: Paste redacted config (remove secrets).
+      render: yaml
+      placeholder: |
+        radios:
+          - port: /dev/ttyUSB0
+            baud: 115200
+            controller_id: 1
+        mqtt_host: core-mosquitto
+        discover_enabled: true
+        topic_prefix: wiimote
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include exact sequence to reproduce.
+      placeholder: |
+        1. Start add-on
+        2. Pair Wii Remote (1 + 2)
+        3. Press A button
+        4. Observe no MQTT publish
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste add-on logs, serial logs, and broker logs if available.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I removed secrets/tokens/passwords from logs and config.
+          required: true
