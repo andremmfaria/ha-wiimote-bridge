@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.3
+
+- Add add-on runtime hardening with a custom AppArmor profile at `wiimote-bridge/apparmor.txt`.
+- Document that seccomp is not supported as an add-on `config.yaml` key in the current Home Assistant schema.
+- Document the security hardening model and rationale in `wiimote-bridge/DOCS.md`.
+- Enhance CI with add-on linting (`frenck/action-addon-linter`), Ruff checks, MyPy checks, and coverage test execution.
+- Add Dependabot configuration for Python (`wiimote-bridge/app`), Docker (`wiimote-bridge`), and GitHub Actions updates.
+- Add development tooling configuration for Ruff and MyPy in `wiimote-bridge/app/pyproject.toml` and refresh `uv.lock`.
+
 ## 0.4.2
 
 - Add add-on metadata and hardening declarations in `wiimote-bridge/config.yaml`: `stage: stable`, minimum Home Assistant version, `privileged: []`, and explicit `auth_api`, `hassio_api`, and `homeassistant_api` flags.
