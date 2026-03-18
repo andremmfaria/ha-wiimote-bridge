@@ -1,5 +1,8 @@
 # Home Assistant WiiMote Bridge
 
+[![CI](https://github.com/andremmfaria/ha-wiimote-bridge/actions/workflows/addon-ci.yml/badge.svg)](https://github.com/andremmfaria/ha-wiimote-bridge/actions/workflows/addon-ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Use a Nintendo Wii Remote as a Home Assistant controller.
 
 This project connects a Wii Remote to an ESP32 over Bluetooth and exposes button presses to Home Assistant via MQTT using a USB serial bridge.
