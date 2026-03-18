@@ -81,15 +81,56 @@ jobs:
             BUILD_FROM=${{ matrix.build_from }}
             BUILD_VERSION=${{ needs.prepare.outputs.version }}
 
+  firmware:
+    name: Build Firmware Binary
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install arduino-cli
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+          sudo mv bin/arduino-cli /usr/local/bin/
+          arduino-cli core update-index
+
+      - name: Install ESP32 core and dependencies
+        run: |
+          arduino-cli core install esp32:esp32@3.3.7
+          arduino-cli lib update-index
+          arduino-cli lib install ESP32Wiimote
+
+      - name: Compile firmware
+        run: |
+          arduino-cli compile --fqbn esp32:esp32:esp32 --output-dir /tmp/firmware ./esp32/wiimote-serial-bridge
+          cp /tmp/firmware/wiimote-serial-bridge.ino.bin /tmp/firmware/wiimote-serial-bridge.bin
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wiimote-serial-bridge-bin
+          path: /tmp/firmware/wiimote-serial-bridge.bin
+          if-no-files-found: error
+
   release:
     needs:
       - prepare
       - build
+      - firmware
     runs-on: ubuntu-latest
     steps:
+      - name: Download firmware artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: wiimote-serial-bridge-bin
+          path: .
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: WiiMote Bridge ${{ needs.prepare.outputs.version }}
           generate_release_notes: true
+          files: |
+            wiimote-serial-bridge.bin

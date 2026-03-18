@@ -67,6 +67,19 @@ Compile and upload from:
 cd esp32/wiimote-serial-bridge
 ```
 
+## Prebuilt Firmware Binary (Release Asset)
+
+Every tagged release publishes a prebuilt firmware asset named:
+
+```text
+wiimote-serial-bridge.bin
+```
+
+You can download it from the GitHub release page for your target version.
+
+This is useful when you want to avoid setting up `arduino-cli` locally.
+If you prefer full control over board/package versions, continue with the local build steps below.
+
 ## Install `arduino-cli`
 
 On Debian, Ubuntu, or WSL:
