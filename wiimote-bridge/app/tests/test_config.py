@@ -125,3 +125,19 @@ def test_load_settings_accepts_double_encoded_radios_json(monkeypatch):
     assert len(settings.radios) == 1
     assert settings.radios[0].controller_id == 5
 
+
+def test_load_settings_health_port_from_environment(monkeypatch):
+    monkeypatch.setenv("HEALTH_PORT", "9000")
+
+    settings = load_settings()
+
+    assert settings.health_port == 9000
+
+
+def test_load_settings_invalid_health_port_disables_endpoint(monkeypatch):
+    monkeypatch.setenv("HEALTH_PORT", "invalid")
+
+    settings = load_settings()
+
+    assert settings.health_port == 0
+

@@ -1,6 +1,7 @@
 import json
 import signal
 import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 import serial
@@ -13,6 +14,46 @@ from wiimote_bridge.utils.logging import configure_logging, get_logger
 
 
 LOGGER = get_logger(__name__)
+
+
+class _HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self) -> None:  # noqa: N802
+        if self.path in {"/health", "/health/"}:
+            body = b"ok\n"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        self.send_response(404)
+        self.end_headers()
+
+    def log_message(self, format: str, *args: object) -> None:
+        del format, args
+        return
+
+
+def _start_health_server(port: int) -> ThreadingHTTPServer | None:
+    if port <= 0:
+        return None
+
+    try:
+        server = ThreadingHTTPServer(("0.0.0.0", port), _HealthHandler)
+    except OSError as exc:
+        LOGGER.warning("Health endpoint failed to bind on port %s: %s", port, exc)
+        return None
+
+    thread = threading.Thread(
+        target=server.serve_forever,
+        kwargs={"poll_interval": 0.5},
+        daemon=True,
+        name="health-server",
+    )
+    thread.start()
+    LOGGER.info("Health endpoint listening on 0.0.0.0:%s/health", port)
+    return server
 
 
 def run_radio(
@@ -103,6 +144,7 @@ def run() -> int:
     LOGGER.info("MQTT SSL insecure cert verification: %s", settings.mqtt_ssl_insecure)
     LOGGER.debug("Topic prefix: %s", settings.topic_prefix)
     LOGGER.debug("MQTT discovery enabled: %s", settings.discover_enabled)
+    LOGGER.info("Health endpoint port: %s", settings.health_port)
 
     stop_event = threading.Event()
 
@@ -113,6 +155,8 @@ def run() -> int:
 
     signal.signal(signal.SIGTERM, handle_signal)
     signal.signal(signal.SIGINT, handle_signal)
+
+    health_server = _start_health_server(settings.health_port)
 
     controller_ids = tuple(radio.controller_id for radio in settings.radios)
     client = connect_mqtt_with_discovery(
@@ -144,5 +188,13 @@ def run() -> int:
         LOGGER.info("MQTT client disconnected")
     except Exception:
         pass
+
+    if health_server is not None:
+        try:
+            health_server.shutdown()
+            health_server.server_close()
+            LOGGER.info("Health endpoint stopped")
+        except Exception:
+            pass
 
     return 0

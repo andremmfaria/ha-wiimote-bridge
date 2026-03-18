@@ -26,6 +26,7 @@ class Settings:
     mqtt_ssl: bool = False
     mqtt_ssl_insecure: bool = False
     log_level: str = "info"
+    health_port: int = 0
 
 
 _DEFAULT_RADIOS = '[{"port":"/dev/ttyUSB0","baud":115200,"controller_id":1}]'
@@ -110,6 +111,14 @@ def _default_mqtt_port(transport: MqttTransport, tls_enabled: bool) -> int:
     return 8883 if tls_enabled else 1883
 
 
+def _parse_health_port(value: object) -> int:
+    try:
+        port = _parse_int(value, "health_port")
+    except ValueError:
+        return 0
+    return port if port > 0 else 0
+
+
 def load_settings() -> Settings:
     settings = Dynaconf(environments=False, envvar_prefix=False)
 
@@ -138,4 +147,5 @@ def load_settings() -> Settings:
         mqtt_ssl_insecure=_as_bool(settings.get("MQTT_SSL_INSECURE", "false"), default=False),
         topic_prefix=settings.get("TOPIC_PREFIX", "wiimote"),
         log_level=str(settings.get("LOG_LEVEL", "info")).lower(),
+        health_port=_parse_health_port(settings.get("HEALTH_PORT", "0")),
     )

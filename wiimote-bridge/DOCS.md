@@ -248,6 +248,37 @@ Recommended values:
 - Use `debug` while validating serial traffic, JSON parsing, or MQTT publication.
 - Use `warning` or `error` only if you want reduced log volume.
 
+#### `health_port`
+
+Port used by the internal health endpoint served by the add-on process.
+
+Default:
+
+```text
+9000
+```
+
+The add-on exposes `GET /health` on this port. Docker uses this endpoint for its native `HEALTHCHECK` directive, probing it periodically to determine container health.
+
+Set this to `0` to disable the internal health endpoint.
+
+## Docker Health Check
+
+The add-on image declares a native Docker health check:
+
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget -qO- http://localhost:9000/health || exit 1
+```
+
+Operational behavior:
+
+- Docker probes `GET /health` every 30 seconds.
+- A healthy process returns HTTP `200` with body `ok`.
+- After 3 consecutive failures the container is marked unhealthy.
+- The Home Assistant supervisor restarts unhealthy add-on containers automatically.
+- After restart, serial and MQTT connections are re-established by normal startup logic.
+
 ## How Device Access Works
 
 This add-on enables Home Assistant serial device mapping through:

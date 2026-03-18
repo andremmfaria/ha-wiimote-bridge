@@ -13,6 +13,7 @@ export MQTT_SSL
 export MQTT_SSL_INSECURE
 export TOPIC_PREFIX
 export LOG_LEVEL
+export HEALTH_PORT
 
 RADIOS="$(bashio::config 'radios')"
 DISCOVER_ENABLED="$(bashio::config 'mqtt.discover_enabled')"
@@ -25,6 +26,7 @@ MQTT_SSL="$(bashio::config 'mqtt.ssl')"
 MQTT_SSL_INSECURE="$(bashio::config 'mqtt.ssl_insecure')"
 TOPIC_PREFIX="$(bashio::config 'mqtt.topic_prefix')"
 LOG_LEVEL="$(bashio::config 'log_level')"
+HEALTH_PORT="$(bashio::config 'health_port')"
 
 if [[ -z "${MQTT_PORT}" || "${MQTT_PORT}" == "0" ]]; then
 	transport_normalized="${MQTT_TRANSPORT,,}"
@@ -53,5 +55,6 @@ bashio::log.info "MQTT transport: ${MQTT_TRANSPORT}"
 bashio::log.info "MQTT SSL enabled: ${MQTT_SSL}"
 bashio::log.info "MQTT SSL insecure cert verification: ${MQTT_SSL_INSECURE}"
 bashio::log.info "Topic prefix: ${TOPIC_PREFIX}"
+bashio::log.info "Health endpoint port: ${HEALTH_PORT}"
 
 exec /app/.venv/bin/python -m wiimote_bridge

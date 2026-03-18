@@ -42,6 +42,7 @@ options:
     ssl: false
     ssl_insecure: false
   log_level: "info"
+  health_port: 9000
 
 schema:
   radios:
@@ -59,3 +60,4 @@ schema:
     ssl: bool
     ssl_insecure: bool
   log_level: list(debug|info|warning|error)
+  health_port: int

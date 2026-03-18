@@ -28,4 +28,7 @@ COPY run.sh /run.sh
 
 RUN chmod a+x /run.sh
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget -qO- http://localhost:9000/health || exit 1
+
 CMD [ "/run.sh" ]
