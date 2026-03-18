@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.5
+
+- Add a reusable Home Assistant automation blueprint for common Wii Remote button actions in `blueprints/automation/wiimote_common.yaml`.
+- Make multi-controller support more prominent in the README and add-on documentation.
+- Expand protocol and add-on docs to clarify how MQTT Discovery maps connection, battery, and button topics into Home Assistant entities.
+- Add FAQ, troubleshooting, and reserved screenshot file references to `wiimote-bridge/DOCS.md`.
+- Add `hacs.json` with baseline metadata for HACS compatibility.
+
 ## 0.4.4
 
 - Add internal HTTP health endpoint (`GET /health`) with configurable `health_port` option (default `9000`).
