@@ -1,5 +1,3 @@
-from typing import Any
-
 import paho.mqtt.client as mqtt
 
 from wiimote_bridge.transport.mqtt_client import (
@@ -9,9 +7,10 @@ from wiimote_bridge.transport.mqtt_client import (
     publish_event_message,
     publish_heartbeat,
 )
+from wiimote_bridge.utils.types import MessagePayload
 
 
-def handle_message(client: mqtt.Client, topic_prefix: str, wiimote_id: int, msg: dict[str, Any]) -> None:
+def handle_message(client: mqtt.Client, topic_prefix: str, wiimote_id: int, msg: MessagePayload) -> None:
     msg_type = msg.get("type")
 
     publish_event_message(client, topic_prefix, wiimote_id, msg)

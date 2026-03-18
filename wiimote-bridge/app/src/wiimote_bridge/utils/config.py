@@ -3,6 +3,7 @@ import os
 from dataclasses import dataclass
 
 from dynaconf import Dynaconf
+from wiimote_bridge.utils.types import MqttTransport
 
 
 @dataclass(frozen=True)
@@ -21,7 +22,7 @@ class Settings:
     mqtt_username: str
     mqtt_password: str
     topic_prefix: str
-    mqtt_transport: str = "tcp"
+    mqtt_transport: MqttTransport = "tcp"
     mqtt_ssl: bool = False
     mqtt_ssl_insecure: bool = False
     log_level: str = "info"
@@ -67,22 +68,43 @@ def _parse_radios(raw_value: object) -> tuple[RadioConfig, ...]:
         radios.append(
             RadioConfig(
                 port=str(radio["port"]),
-                baud=int(radio["baud"]),
-                controller_id=int(radio["controller_id"]),
+                baud=_parse_int(radio["baud"], "baud"),
+                controller_id=_parse_int(radio["controller_id"], "controller_id"),
             )
         )
 
     return tuple(radios)
 
 
-def _parse_mqtt_transport(value: object) -> str:
+def _parse_int(value: object, field_name: str) -> int:
+    if isinstance(value, bool):
+        raise ValueError(f"{field_name} must be an integer")
+
+    if isinstance(value, int):
+        return value
+
+    if isinstance(value, float):
+        if value.is_integer():
+            return int(value)
+        raise ValueError(f"{field_name} must be an integer")
+
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except ValueError as exc:
+            raise ValueError(f"{field_name} must be an integer") from exc
+
+    raise ValueError(f"{field_name} must be an integer")
+
+
+def _parse_mqtt_transport(value: object) -> MqttTransport:
     transport = str(value).strip().lower()
-    if transport in {"tcp", "websockets"}:
-        return transport
+    if transport == "websockets":
+        return "websockets"
     return "tcp"
 
 
-def _default_mqtt_port(transport: str, tls_enabled: bool) -> int:
+def _default_mqtt_port(transport: MqttTransport, tls_enabled: bool) -> int:
     if transport == "websockets":
         return 8884 if tls_enabled else 1884
     return 8883 if tls_enabled else 1883

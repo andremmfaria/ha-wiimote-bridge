@@ -9,6 +9,7 @@ import paho.mqtt.client as mqtt
 
 from wiimote_bridge.utils.config import Settings
 from wiimote_bridge.utils.logging import get_logger
+from wiimote_bridge.utils.types import DiscoveryStats, MessagePayload, MqttTransport
 
 
 LOGGER = get_logger(__name__)
@@ -44,16 +45,16 @@ def connect_mqtt_with_discovery(
     discovery_prefix: str = "homeassistant",
 ) -> mqtt.Client:
     wiimote_ids = tuple(int(wiimote_id) for wiimote_id in discovery_wiimote_ids)
+    transport: MqttTransport = settings.mqtt_transport
 
     client = mqtt.Client(
         callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
         client_id="wiimote-serial-bridge",
         clean_session=True,
-        transport=settings.mqtt_transport,
+        transport=transport,
     )
 
     LOGGER.info("MQTT transport mode: %s", settings.mqtt_transport)
-
     if settings.mqtt_ssl:
         cert_reqs = ssl.CERT_NONE if settings.mqtt_ssl_insecure else ssl.CERT_REQUIRED
         client.tls_set(cert_reqs=cert_reqs)
@@ -164,7 +165,7 @@ def mqtt_publish(client: mqtt.Client, topic: str, payload: str, retain: bool = F
     return True
 
 
-def _normalize_wiimote_payload(payload_obj: dict[str, Any], wiimote_id: int) -> dict[str, Any]:
+def _normalize_wiimote_payload(payload_obj: MessagePayload, wiimote_id: int) -> MessagePayload:
     if "wiimote" not in payload_obj:
         return payload_obj
 
@@ -173,7 +174,7 @@ def _normalize_wiimote_payload(payload_obj: dict[str, Any], wiimote_id: int) -> 
     return normalized_payload
 
 
-def publish_event_message(client: mqtt.Client, topic_prefix: str, wiimote_id: int, payload_obj: dict[str, Any]) -> None:
+def publish_event_message(client: mqtt.Client, topic_prefix: str, wiimote_id: int, payload_obj: MessagePayload) -> None:
     msg_type = str(payload_obj.get("type", "unknown"))
 
     if "wiimote" in payload_obj:
@@ -205,7 +206,7 @@ def publish_battery(client: mqtt.Client, topic_prefix: str, wiimote_id: int, lev
     mqtt_publish(client, topic, str(level), retain=True)
 
 
-def publish_heartbeat(client: mqtt.Client, topic_prefix: str, wiimote_id: int, payload_obj: dict[str, Any]) -> None:
+def publish_heartbeat(client: mqtt.Client, topic_prefix: str, wiimote_id: int, payload_obj: MessagePayload) -> None:
     topic = f"{topic_prefix}/{wiimote_id}/status/heartbeat"
     payload = json.dumps(_normalize_wiimote_payload(payload_obj, wiimote_id), separators=(",", ":"))
     mqtt_publish(client, topic, payload, retain=False)
@@ -216,7 +217,7 @@ def publish_discovery_configs(
     topic_prefix: str,
     wiimote_ids: Iterable[int],
     discovery_prefix: str = "homeassistant",
-) -> dict[str, int]:
+) -> DiscoveryStats:
     controllers = 0
     entities = 0
     failed = 0

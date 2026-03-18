@@ -3,12 +3,14 @@ name: Add-on CI
 on:
   pull_request:
     paths:
+      - .github/dependabot.yml
       - .github/workflows/addon-*.yml
       - wiimote-bridge/**
   push:
     branches:
       - main
     paths:
+      - .github/dependabot.yml
       - .github/workflows/addon-*.yml
       - wiimote-bridge/**
 
@@ -16,8 +18,20 @@ permissions:
   contents: read
 
 jobs:
+  addon-check:
+    name: Add-on Checker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run add-on checker
+        uses: frenck/action-addon-linter@v2
+        with:
+          path: ./wiimote-bridge
+
   test:
-    name: Test (uv + pytest)
+    name: Quality (ruff + mypy + pytest)
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -31,13 +45,21 @@ jobs:
       - name: Install uv
         run: python -m pip install uv==0.10.9
 
+      - name: Run Ruff
+        working-directory: ./wiimote-bridge/app
+        run: uv run --dev ruff check src tests
+
+      - name: Run MyPy
+        working-directory: ./wiimote-bridge/app
+        run: uv run --dev mypy src/wiimote_bridge
+
       - name: Run tests
         working-directory: ./wiimote-bridge/app
         run: uv run --dev pytest -q
 
   build:
     name: Build (${{ matrix.arch }})
-    needs: test
+    needs: [addon-check, test]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -49,12 +71,6 @@ jobs:
           - arch: aarch64
             platform: linux/arm64
             build_from: ghcr.io/home-assistant/aarch64-base:3.19
-          - arch: armv7
-            platform: linux/arm/v7
-            build_from: ghcr.io/home-assistant/armv7-base:3.19
-          - arch: i386
-            platform: linux/386
-            build_from: ghcr.io/home-assistant/i386-base:3.19
 
     steps:
       - name: Check out repository

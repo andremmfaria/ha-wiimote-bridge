@@ -5,20 +5,21 @@ description: |
   Bridge a Nintendo Wii Remote to Home Assistant using an ESP32 over USB serial.
   Button events are published to MQTT topics for use in automations.
 url: "https://github.com/andremmfaria/ha-wiimote-bridge"
-stage: stable
 homeassistant: "2024.1.0"
+# Optional defaults (left commented to satisfy the add-on linter):
+# https://developers.home-assistant.io/docs/add-ons/configuration/
+# stage: stable
+# auth_api: false
+# hassio_api: false
+# homeassistant_api: false
+# apparmor: true
+# startup: application
+# boot: auto
 privileged: []
-auth_api: false
-hassio_api: false
-homeassistant_api: false
 image: "ghcr.io/andremmfaria/{arch}-addon-wiimote-bridge"
 arch:
   - amd64
   - aarch64
-  - armv7
-  - i386
-startup: application
-boot: auto
 init: false
 services:
   - mqtt:want
