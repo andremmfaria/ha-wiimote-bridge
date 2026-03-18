@@ -84,6 +84,26 @@ For a more guided setup flow, see the repository documentation:
 - `docs/protocol.md`
 - `docs/architecture.md`
 
+## Screenshots
+
+The following images are recommended and reserved in the documentation. Add the image files later without needing to change the section structure.
+
+### Add-on Configuration
+
+![Add-on configuration screen](../img/addon-config.png)
+
+### Add-on Logs After Successful Startup
+
+![Add-on logs after startup](../img/addon-logs.png)
+
+### Home Assistant Device Page
+
+![Discovered Wii Remote device page](../img/device-page.png)
+
+### Blueprint or Automation Setup
+
+![Blueprint setup screen](../img/blueprint-setup.png)
+
 ## Configuration
 
 Example add-on configuration:
@@ -532,6 +552,24 @@ action:
       entity_id: light.living_room
 mode: single
 ```
+
+## FAQ
+
+### Can I use more than one Wii Remote?
+
+Yes. Use one ESP32 per Wii Remote and configure each device as a separate entry under `radios` with a unique `controller_id`.
+
+### Does the ESP32 need to be on the same Wi-Fi network as Home Assistant?
+
+No. The ESP32 communicates with Home Assistant over USB serial, not Wi-Fi.
+
+### Can I use a Nunchuk or Motion Plus?
+
+Not yet. Those features are planned for the future firmware roadmap.
+
+### Do I have to write automations from scratch?
+
+No. The repository includes `blueprints/automation/wiimote_common.yaml` for common button-driven automations.
 
 ### Trigger a Scene with the PLUS Button
 
