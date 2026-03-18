@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.4
+
+- Add internal HTTP health endpoint (`GET /health`) with configurable `health_port` option (default `9000`).
+- Add native Docker `HEALTHCHECK` directive to the add-on image that probes the health endpoint every 30 seconds.
+- The Home Assistant supervisor restarts the add-on automatically when the container is marked unhealthy by Docker.
+- Update startup/runtime wiring (`run.sh`, settings parsing, and runtime loop) to start and stop the health endpoint safely.
+- Add tests for health port configuration parsing and document health-check behavior in add-on docs.
+- Automate firmware release assets by building `wiimote-serial-bridge.bin` in the release workflow and attaching it to GitHub releases.
+- Update firmware setup docs to reference the prebuilt release binary.
+
 ## 0.4.3
 
 - Add add-on runtime hardening with a custom AppArmor profile at `wiimote-bridge/apparmor.txt`.
