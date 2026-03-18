@@ -47,6 +47,25 @@ Recommended prerequisites:
 - Confirm the ESP32 appears under Home Assistant hardware information as a serial device such as `/dev/ttyUSB0` or `/dev/ttyACM0`.
 - Confirm the firmware baud rate matches the add-on baud setting.
 
+## Security Hardening
+
+This add-on uses a least-privilege security model aligned with Home Assistant add-on best practices.
+
+### Security Controls Enabled
+
+- `privileged: []`: no elevated Linux capabilities are requested.
+- Supervisor and Home Assistant API access are not requested by this add-on.
+- AppArmor is enabled (default Home Assistant behavior), with a custom profile in `wiimote-bridge/apparmor.txt`.
+
+### Why This Matters
+
+- Limits what the process can access on disk and in `/proc`.
+- Restricts hardware access to expected serial devices (`/dev/ttyUSB*`, `/dev/ttyACM*`).
+- Restricts outbound behavior to normal MQTT networking.
+- Reduces blast radius if a dependency or runtime vulnerability is triggered.
+
+If you modify runtime behavior (for example, new device paths or OS-level operations), re-validate and update the AppArmor profile accordingly.
+
 ## Installation
 
 1. Add this repository to the Home Assistant add-on store.

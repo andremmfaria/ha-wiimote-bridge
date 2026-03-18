@@ -1,0 +1,35 @@
+#include <tunables/global>
+
+profile hassio-addon-wiimote_bridge flags=(attach_disconnected,mediate_deleted) {
+  #include <abstractions/base>
+  #include <abstractions/nameservice>
+  #include <abstractions/ssl_certs>
+
+  # Python runtime and add-on files
+  /usr/bin/python3.13 rix,
+  /usr/lib/** r,
+  /usr/local/** r,
+  /etc/** r,
+  /app/** r,
+  /data/** rw,
+  /tmp/** rw,
+  /var/tmp/** rw,
+
+  # Serial device access for ESP32 bridge
+  /dev/ttyUSB[0-9]* rw,
+  /dev/ttyACM[0-9]* rw,
+
+  # Runtime process bookkeeping
+  /proc/** r,
+  /run/** rw,
+
+  # Network access for MQTT client
+  network inet stream,
+  network inet6 stream,
+
+  deny @{PROC}/* w,
+  deny @{PROC}/sysrq-trigger rwklx,
+  deny @{PROC}/mem rwklx,
+  deny @{PROC}/kmem rwklx,
+  deny @{PROC}/kcore rwklx,
+}
