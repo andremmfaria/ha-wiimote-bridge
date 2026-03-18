@@ -132,6 +132,13 @@ radios:
 
 Due to limitations in the ESP32 Classic HID stack, each ESP32 radio can pair with only one Wii Remote at a time. One add-on instance manages all radios, opening a dedicated serial reader thread per entry.
 
+This makes multi-controller setups first-class:
+
+- use one ESP32 per controller
+- assign a unique `controller_id` to each radio
+- keep a single add-on instance and single MQTT integration
+- get separate discovery entities and MQTT topics per controller
+
 #### `mqtt.discover_enabled`
 
 Controls whether the add-on publishes Home Assistant MQTT Discovery config topics after a confirmed MQTT connection.
@@ -360,6 +367,8 @@ Entity types created per controller:
 - Battery sensor (`.../status/battery`)
 - Button binary sensors for `A`, `B`, `UP`, `DOWN`, `LEFT`, `RIGHT`, `PLUS`, `MINUS`, `HOME`, `ONE`, `TWO`
 
+This means battery level and connection state are exposed as dedicated Home Assistant entities, not only as raw MQTT topics.
+
 Button entities are intentionally modeled as binary sensors because the bridge publishes button edge transitions (`ON` for press, `OFF` for release), which align with binary sensor semantics and Home Assistant automations.
 
 ### Button Events
@@ -496,6 +505,18 @@ The add-on currently maps them like this:
 Firmware `ready`, `waiting`, and `note` messages are available through the events topics.
 
 ## Example Home Assistant Automations
+
+The repository includes a reusable blueprint for common Wii Remote automations:
+
+```text
+blueprints/automation/wiimote_common.yaml
+```
+
+It provides ready-to-wire actions for:
+
+- `A` button presses
+- `HOME` button presses
+- `PLUS` button presses
 
 ### Toggle a Light with the A Button
 

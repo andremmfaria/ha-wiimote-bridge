@@ -197,6 +197,21 @@ Current mapping:
 
 This means every valid firmware message now reaches MQTT even if there is no dedicated high-level topic for it yet.
 
+## Home Assistant Entity Mapping
+
+When MQTT Discovery is enabled, the add-on also maps operational topics into Home Assistant entities per configured controller.
+
+| Entity | Discovery component | State topic |
+| --- | --- | --- |
+| Connection state | `binary_sensor` | `<prefix>/<id>/status/connected` |
+| Battery level | `sensor` | `<prefix>/<id>/status/battery` |
+| Button A | `binary_sensor` | `<prefix>/<id>/button/A` |
+| Button B | `binary_sensor` | `<prefix>/<id>/button/B` |
+| Button HOME | `binary_sensor` | `<prefix>/<id>/button/HOME` |
+| Button PLUS | `binary_sensor` | `<prefix>/<id>/button/PLUS` |
+
+Each configured controller gets its own entity set, which keeps multi-controller installations isolated and predictable inside Home Assistant.
+
 ## Ordering and State Semantics
 
 The firmware emits messages sequentially. Button events are emitted on transitions only.

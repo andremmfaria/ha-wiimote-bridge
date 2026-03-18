@@ -1,0 +1,71 @@
+blueprint:
+  name: WiiMote Common Actions
+  description: Map common Wii Remote button presses to Home Assistant actions.
+  domain: automation
+  input:
+    controller_id:
+      name: Controller ID
+      description: The configured controller_id for the Wii Remote.
+      default: "1"
+      selector:
+        text:
+    topic_prefix:
+      name: Topic prefix
+      description: MQTT topic prefix configured in the add-on.
+      default: wiimote
+      selector:
+        text:
+    a_button_action:
+      name: A button action
+      description: Action to run when the A button is pressed.
+      default: []
+      selector:
+        action: {}
+    home_button_action:
+      name: HOME button action
+      description: Action to run when the HOME button is pressed.
+      default: []
+      selector:
+        action: {}
+    plus_button_action:
+      name: PLUS button action
+      description: Action to run when the PLUS button is pressed.
+      default: []
+      selector:
+        action: {}
+
+mode: queued
+max: 10
+
+trigger_variables:
+  controller_id: !input controller_id
+  topic_prefix: !input topic_prefix
+
+trigger:
+  - platform: mqtt
+    topic: "{{ topic_prefix }}/{{ controller_id }}/button/A"
+    payload: "ON"
+    id: a_button
+  - platform: mqtt
+    topic: "{{ topic_prefix }}/{{ controller_id }}/button/HOME"
+    payload: "ON"
+    id: home_button
+  - platform: mqtt
+    topic: "{{ topic_prefix }}/{{ controller_id }}/button/PLUS"
+    payload: "ON"
+    id: plus_button
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: a_button
+        sequence: !input a_button_action
+      - conditions:
+          - condition: trigger
+            id: home_button
+        sequence: !input home_button_action
+      - conditions:
+          - condition: trigger
+            id: plus_button
+        sequence: !input plus_button_action

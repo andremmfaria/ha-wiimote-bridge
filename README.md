@@ -35,6 +35,38 @@ The add-on is packaged as a Home Assistant custom repository and publishes pre-b
 - Dedicated MQTT topics for button, connection, heartbeat, and battery
 - Passthrough MQTT events topics for all valid firmware JSON messages
 - MQTT Discovery auto-registers WiiMote entities in Home Assistant
+- Supports multiple Wii Remotes from one add-on instance by configuring multiple ESP32 radios
+- Includes a Home Assistant automation blueprint for common button-driven actions
+
+## Multiple Controllers
+
+The add-on is designed to scale beyond a single Wii Remote.
+
+- Connect one ESP32 per Wii Remote.
+- Add one entry per ESP32 under `radios`.
+- Give each entry a unique `controller_id`.
+- The bridge publishes separate MQTT topics and discovery entities per controller.
+
+Example:
+
+```yaml
+radios:
+  - port: /dev/ttyUSB0
+    baud: 115200
+    controller_id: 1
+  - port: /dev/ttyUSB1
+    baud: 115200
+    controller_id: 2
+mqtt:
+  host: core-mosquitto
+  port: 0
+  transport: tcp
+  ssl: false
+  ssl_insecure: false
+  topic_prefix: wiimote
+  discover_enabled: true
+log_level: info
+```
 
 ## Repository Structure
 
@@ -88,31 +120,35 @@ radios:
   - port: /dev/ttyUSB0
     baud: 115200
     controller_id: 1
-mqtt_host: core-mosquitto
-discover_enabled: true
-mqtt_port: 0
-mqtt_transport: tcp
-mqtt_ssl: false
-mqtt_ssl_insecure: false
-topic_prefix: wiimote
+mqtt:
+  host: core-mosquitto
+  port: 0
+  username: ""
+  password: ""
+  transport: tcp
+  ssl: false
+  ssl_insecure: false
+  topic_prefix: wiimote
+  discover_enabled: true
+log_level: info
 ```
 
-Set `mqtt_port: 0` to auto-select the default port from transport/security mode:
+Set `mqtt.port: 0` to auto-select the default port from transport/security mode:
 
-- `tcp` + `mqtt_ssl: false` -> `1883`
-- `tcp` + `mqtt_ssl: true` -> `8883`
-- `websockets` + `mqtt_ssl: false` -> `1884`
-- `websockets` + `mqtt_ssl: true` -> `8884`
+- `tcp` + `mqtt.ssl: false` -> `1883`
+- `tcp` + `mqtt.ssl: true` -> `8883`
+- `websockets` + `mqtt.ssl: false` -> `1884`
+- `websockets` + `mqtt.ssl: true` -> `8884`
 
 MQTT transport/security knobs:
 
-- `mqtt_transport`: `tcp` or `websockets`
-- `mqtt_ssl`: enable TLS for MQTT connection
-- `mqtt_ssl_insecure`: disable TLS certificate chain verification (useful for self-hosted certs)
+- `mqtt.transport`: `tcp` or `websockets`
+- `mqtt.ssl`: enable TLS for MQTT connection
+- `mqtt.ssl_insecure`: disable TLS certificate chain verification (useful for self-hosted certs)
 
 Each entry in `radios` defines one ESP32 radio. Add more entries for each additional ESP32 connected to the host.
 
-Set `discover_enabled: false` to disable Home Assistant MQTT Discovery publishing.
+Set `mqtt.discover_enabled: false` to disable Home Assistant MQTT Discovery publishing.
 
 Then:
 
@@ -137,6 +173,8 @@ Then:
 - one connectivity binary sensor per controller
 - one battery sensor per controller
 - one button binary sensor per supported button
+
+The repository also ships a reusable blueprint at `blueprints/automation/wiimote_common.yaml` for common button mappings.
 
 Payloads:
 
