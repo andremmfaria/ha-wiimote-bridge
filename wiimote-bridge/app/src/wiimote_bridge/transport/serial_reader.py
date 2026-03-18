@@ -2,7 +2,6 @@ import serial
 
 from wiimote_bridge.utils.logging import get_logger
 
-
 LOGGER = get_logger(__name__)
 
 

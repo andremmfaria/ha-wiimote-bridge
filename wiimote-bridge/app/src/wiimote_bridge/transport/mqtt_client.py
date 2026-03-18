@@ -10,7 +10,6 @@ import paho.mqtt.client as mqtt
 from wiimote_bridge.utils.config import Settings
 from wiimote_bridge.utils.logging import get_logger
 
-
 LOGGER = get_logger(__name__)
 PUBLISH_WARNING_INTERVAL_SECONDS = 15.0
 _last_publish_warning_at: float | None = None

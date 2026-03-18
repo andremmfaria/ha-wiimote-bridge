@@ -11,7 +11,6 @@ from wiimote_bridge.transport.serial_reader import open_serial
 from wiimote_bridge.utils.config import RadioConfig, load_settings
 from wiimote_bridge.utils.logging import configure_logging, get_logger
 
-
 LOGGER = get_logger(__name__)
 
 

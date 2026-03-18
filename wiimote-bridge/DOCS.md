@@ -643,6 +643,25 @@ Check that:
 2. The version in `config.yaml` matches the pushed git tag.
 3. The GHCR package exists and is public.
 
+## Removal
+
+To remove this add-on from your Home Assistant instance:
+
+1. Stop the add-on if it is running: open the add-on page and click **Stop**.
+2. Uninstall the add-on: click **Uninstall** on the add-on page and confirm.
+3. If you used MQTT Discovery, the entities created by the add-on remain in Home Assistant after removal because they are sourced from retained MQTT topics on the broker. To fully clean up:
+   - Delete the entities from **Settings → Devices & Services → MQTT**.
+   - Or remove the retained discovery topics from your MQTT broker:
+
+     ```bash
+     mosquitto_pub -h <broker-host> -p <broker-port> -u <user> -P <pass> \
+       -t 'homeassistant/binary_sensor/wiimote_<id>/+/config' -n -r
+     mosquitto_pub -h <broker-host> -p <broker-port> -u <user> -P <pass> \
+       -t 'homeassistant/sensor/wiimote_<id>/+/config' -n -r
+     ```
+
+4. If you added this repository only for this add-on, you can also remove the repository from the add-on store under **Settings → Add-ons → Add-on Store → ⋮ → Repositories**.
+
 ## Operational Notes
 
 - The application currently provides dedicated MQTT topics for button events, connection state, battery level, and heartbeat messages.
