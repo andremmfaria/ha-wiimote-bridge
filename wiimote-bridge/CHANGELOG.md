@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.2
+
+- Add add-on metadata and hardening declarations in `wiimote-bridge/config.yaml`: `stage: stable`, minimum Home Assistant version, `privileged: []`, and explicit `auth_api`, `hassio_api`, and `homeassistant_api` flags.
+- Add GitHub community health files: issue templates, pull request template, `CONTRIBUTING.md`, and `SECURITY.md`.
+- Add README badges for CI workflow status and project license.
+- Ignore local planning notes by adding `plans/` to `.gitignore`.
+
 ## 0.4.1
 
 - Fix MQTT discovery publish timing by running discovery only after a confirmed connection and off the MQTT loop thread, preventing keepalive starvation/disconnect timeouts.
