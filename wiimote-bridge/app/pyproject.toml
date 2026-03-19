@@ -10,7 +10,7 @@ requires-python = ">=3.11"
 dependencies = [
   "pyserial==3.5",
   "paho-mqtt==2.1.0",
-  "dynaconf==3.2.12",
+  "dynaconf==3.2.13",
 ]
 
 [dependency-groups]
