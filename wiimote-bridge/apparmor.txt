@@ -6,6 +6,11 @@ profile hassio-addon-wiimote_bridge flags=(attach_disconnected,mediate_deleted) 
   #include <abstractions/ssl_certs>
 
   # Python runtime and add-on files
+  /init rix,
+  /command/** ix,
+  /usr/bin/with-contenv ix,
+  /bin/sh ix,
+  /bin/bash ix,
   /usr/bin/python3.13 rix,
   /usr/lib/** r,
   /usr/local/** r,
