@@ -1,19 +1,33 @@
 #include <tunables/global>
 
-profile hassio-addon-wiimote_bridge flags=(attach_disconnected,mediate_deleted) {
+profile hassio-addon-wiimote_bridge flags=(attach_disconnected,mediate_deleted,complain) {
   #include <abstractions/base>
   #include <abstractions/nameservice>
   #include <abstractions/ssl_certs>
 
-  # Python runtime and add-on files
-  /usr/bin/python3.13 rix,
+  # Core init + supervisor stack (s6/execline) and runtime binaries
+  /init rix,
+  /command/** rix,
+  /package/** rix,
+  /run/s6/** rix,
+  /bin/** rix,
+  /sbin/** rix,
+  /usr/bin/** rix,
+  /usr/sbin/** rix,
+
+  # Read-only system paths and app code
   /usr/lib/** r,
   /usr/local/** r,
+  /lib/** r,
+  /lib64/** r,
   /etc/** r,
   /app/** r,
-  /data/** rw,
-  /tmp/** rw,
-  /var/tmp/** rw,
+
+  # Writable runtime/data paths
+  /data/** rwk,
+  /tmp/** rwk,
+  /var/tmp/** rwk,
+  /run/** rwk,
 
   # Serial device access for ESP32 bridge
   /dev/ttyUSB[0-9]* rw,
@@ -21,9 +35,18 @@ profile hassio-addon-wiimote_bridge flags=(attach_disconnected,mediate_deleted) 
 
   # Runtime process bookkeeping
   /proc/** r,
-  /run/** rw,
+
+  # Minimal capabilities commonly needed by init/runtime helpers
+  capability setuid,
+  capability setgid,
+  capability chown,
+  capability fowner,
+  capability dac_override,
+  capability kill,
 
   # Network access for MQTT client
+  network unix stream,
+  network unix dgram,
   network inet stream,
   network inet6 stream,
 

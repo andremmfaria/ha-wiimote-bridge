@@ -18,12 +18,25 @@ permissions:
   contents: read
 
 jobs:
+  apparmor-check:
+    name: AppArmor Profile Syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install AppArmor parser
+        run: sudo apt-get install -y apparmor
+
+      - name: Validate AppArmor profile
+        run: apparmor_parser -d wiimote-bridge/apparmor.txt
+
   addon-check:
     name: Add-on Checker
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Run add-on checker
         uses: frenck/action-addon-linter@v2
@@ -35,10 +48,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
@@ -59,7 +72,7 @@ jobs:
 
   build:
     name: Build (${{ matrix.arch }})
-    needs: [addon-check, test]
+    needs: [apparmor-check, addon-check, test]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -74,16 +87,16 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build add-on image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ./wiimote-bridge
           file: ./wiimote-bridge/Dockerfile
