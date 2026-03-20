@@ -1,6 +1,7 @@
 import logging
 
-from wiimote_bridge.utils.logging import LOG_LEVELS, configure_logging, get_logger
+from wiimote_bridge.utils.logging import (LOG_LEVELS, configure_logging,
+                                          get_logger)
 
 
 def test_configure_logging_returns_normalized_level():

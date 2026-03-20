@@ -1,24 +1,31 @@
+import socket
+import ssl
 import threading
 
-from wiimote_bridge.transport import mqtt_client
+import pytest
+
+import wiimote_bridge.transport.mqtt.connection as connection
+import wiimote_bridge.transport.mqtt.discovery as discovery
+import wiimote_bridge.transport.mqtt.errors as errors
+import wiimote_bridge.transport.mqtt.publish as publish
 from wiimote_bridge.utils.config import RadioConfig, Settings
 
 
 def _patch_publish(monkeypatch):
-    """Patch mqtt_publish to capture the single (topic, payload, retain) call."""
+    """Patch message to capture the single (topic, payload, retain) call."""
     called = {}
 
     def fake_publish(_client, topic, payload, retain=False):
         called["data"] = (topic, payload, retain)
 
-    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+    monkeypatch.setattr(publish, "message", fake_publish)
     return called
 
 
 def test_publish_button_formats_topic_and_payload(monkeypatch):
     called = _patch_publish(monkeypatch)
 
-    mqtt_client.publish_button(object(), "wiimote", 1, "A", True)
+    publish.button(object(), "wiimote", 1, "A", True)
 
     assert called["data"] == ("wiimote/1/button/A", "ON", False)
 
@@ -26,7 +33,7 @@ def test_publish_button_formats_topic_and_payload(monkeypatch):
 def test_publish_connected_retained(monkeypatch):
     called = _patch_publish(monkeypatch)
 
-    mqtt_client.publish_connected(object(), "wiimote", 1, False)
+    publish.connected(object(), "wiimote", 1, False)
 
     assert called["data"] == ("wiimote/1/status/connected", "false", True)
 
@@ -34,7 +41,7 @@ def test_publish_connected_retained(monkeypatch):
 def test_publish_battery_retained(monkeypatch):
     called = _patch_publish(monkeypatch)
 
-    mqtt_client.publish_battery(object(), "wiimote", 2, 87)
+    publish.battery(object(), "wiimote", 2, 87)
 
     assert called["data"] == ("wiimote/2/status/battery", "87", True)
 
@@ -42,7 +49,9 @@ def test_publish_battery_retained(monkeypatch):
 def test_publish_event_message_for_wiimote(monkeypatch):
     called = _patch_publish(monkeypatch)
 
-    mqtt_client.publish_event_message(object(), "wiimote", 1, {"type": "status", "wiimote": 1, "waiting": True})
+    publish.event_message(
+        object(), "wiimote", 1, {"type": "status", "wiimote": 1, "waiting": True}
+    )
 
     assert called["data"] == (
         "wiimote/1/events/status",
@@ -54,7 +63,9 @@ def test_publish_event_message_for_wiimote(monkeypatch):
 def test_publish_event_message_for_wiimote_normalizes_fixed_id(monkeypatch):
     called = _patch_publish(monkeypatch)
 
-    mqtt_client.publish_event_message(object(), "wiimote", 4, {"type": "status", "wiimote": 9, "waiting": True})
+    publish.event_message(
+        object(), "wiimote", 4, {"type": "status", "wiimote": 9, "waiting": True}
+    )
 
     assert called["data"] == (
         "wiimote/4/events/status",
@@ -66,7 +77,9 @@ def test_publish_event_message_for_wiimote_normalizes_fixed_id(monkeypatch):
 def test_publish_event_message_for_device(monkeypatch):
     called = _patch_publish(monkeypatch)
 
-    mqtt_client.publish_event_message(object(), "wiimote", 6, {"type": "status", "device": "esp32", "ready": True})
+    publish.event_message(
+        object(), "wiimote", 6, {"type": "status", "device": "esp32", "ready": True}
+    )
 
     assert called["data"] == (
         "wiimote/device/esp32/events/status",
@@ -78,7 +91,7 @@ def test_publish_event_message_for_device(monkeypatch):
 def test_publish_heartbeat_normalizes_wiimote_id(monkeypatch):
     called = _patch_publish(monkeypatch)
 
-    mqtt_client.publish_heartbeat(
+    publish.heartbeat(
         object(),
         "wiimote",
         3,
@@ -99,9 +112,9 @@ def test_publish_discovery_configs_publishes_connected_battery_and_buttons(monke
         published.append((topic, payload, retain))
         return True
 
-    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+    monkeypatch.setattr(discovery, "message", fake_publish)
 
-    result = mqtt_client.publish_discovery_configs(object(), "wiimote", [7])
+    result = discovery.configs(object(), "wiimote", [7])
 
     # 1 connected + 1 battery + 11 button entities
     assert len(published) == 13
@@ -111,12 +124,16 @@ def test_publish_discovery_configs_publishes_connected_battery_and_buttons(monke
     assert '"state_topic":"wiimote/7/status/connected"' in published[0][1]
     assert '"via_device"' not in published[0][1]
 
-    battery_entry = next(x for x in published if x[0] == "homeassistant/sensor/wiimote_7/battery/config")
+    battery_entry = next(
+        x for x in published if x[0] == "homeassistant/sensor/wiimote_7/battery/config"
+    )
     assert battery_entry[2] is True
     assert '"state_topic":"wiimote/7/status/battery"' in battery_entry[1]
 
     button_entry = next(
-        x for x in published if x[0] == "homeassistant/binary_sensor/wiimote_7/button_a/config"
+        x
+        for x in published
+        if x[0] == "homeassistant/binary_sensor/wiimote_7/button_a/config"
     )
     assert button_entry[2] is True
     assert '"state_topic":"wiimote/7/button/A"' in button_entry[1]
@@ -129,9 +146,9 @@ def test_publish_discovery_configs_respects_custom_discovery_prefix(monkeypatch)
         published.append((topic, payload, retain))
         return True
 
-    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+    monkeypatch.setattr(discovery, "message", fake_publish)
 
-    result = mqtt_client.publish_discovery_configs(object(), "wiimote", [1], discovery_prefix="ha")
+    result = discovery.configs(object(), "wiimote", [1], discovery_prefix="ha")
 
     assert published[0][0].startswith("ha/")
     assert result["entities"] == 13
@@ -141,9 +158,9 @@ def test_publish_discovery_configs_counts_failures(monkeypatch):
     def fake_publish(client, topic, payload, retain=False):
         return not topic.endswith("button_a/config")
 
-    monkeypatch.setattr(mqtt_client, "mqtt_publish", fake_publish)
+    monkeypatch.setattr(discovery, "message", fake_publish)
 
-    result = mqtt_client.publish_discovery_configs(object(), "wiimote", [1])
+    result = discovery.configs(object(), "wiimote", [1])
 
     assert result == {"controllers": 1, "entities": 12, "failed": 1}
 
@@ -166,7 +183,7 @@ def test_connect_mqtt_with_discovery_sets_auth_and_starts_loop(monkeypatch):
         def loop_start(self):
             calls["loop_start"] = True
 
-    monkeypatch.setattr(mqtt_client.mqtt, "Client", FakeClient)
+    monkeypatch.setattr(connection.mqtt, "Client", FakeClient)
 
     settings = Settings(
         radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
@@ -178,7 +195,7 @@ def test_connect_mqtt_with_discovery_sets_auth_and_starts_loop(monkeypatch):
         topic_prefix="wiimote",
     )
 
-    client = mqtt_client.connect_mqtt_with_discovery(
+    client = connection.connect_with_discovery(
         settings,
         discovery_enabled=True,
         discovery_topic_prefix="wiimote",
@@ -187,7 +204,7 @@ def test_connect_mqtt_with_discovery_sets_auth_and_starts_loop(monkeypatch):
 
     assert client is not None
     assert calls["init"] == (
-        mqtt_client.mqtt.CallbackAPIVersion.VERSION2,
+        connection.mqtt.CallbackAPIVersion.VERSION2,
         "wiimote-serial-bridge",
         True,
         "tcp",
@@ -211,7 +228,7 @@ def test_connect_mqtt_on_disconnect_accepts_v2_signature(monkeypatch):
         def loop_start(self):
             return None
 
-    monkeypatch.setattr(mqtt_client.mqtt, "Client", FakeClient)
+    monkeypatch.setattr(connection.mqtt, "Client", FakeClient)
 
     settings = Settings(
         radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
@@ -223,7 +240,7 @@ def test_connect_mqtt_on_disconnect_accepts_v2_signature(monkeypatch):
         topic_prefix="wiimote",
     )
 
-    client = mqtt_client.connect_mqtt_with_discovery(
+    client = connection.connect_with_discovery(
         settings,
         discovery_enabled=False,
         discovery_topic_prefix="wiimote",
@@ -232,6 +249,217 @@ def test_connect_mqtt_on_disconnect_accepts_v2_signature(monkeypatch):
 
     # Paho v2 callback shape: (client, userdata, disconnect_flags, reason_code, properties)
     client.on_disconnect(client, None, None, 1, None)
+
+
+def test_connect_mqtt_logs_explicit_auth_failure_on_connect(monkeypatch, caplog):
+    class FakeClient:
+        def __init__(self, callback_api_version, client_id, clean_session, transport):
+            self.on_connect = None
+            self.on_disconnect = None
+
+        def connect(self, host, port, keepalive):
+            return None
+
+        def loop_start(self):
+            return None
+
+    monkeypatch.setattr(connection.mqtt, "Client", FakeClient)
+
+    settings = Settings(
+        radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
+        discover_enabled=True,
+        mqtt_host="core-mosquitto",
+        mqtt_port=1883,
+        mqtt_username="",
+        mqtt_password="",
+        topic_prefix="wiimote",
+    )
+
+    client = connection.connect_with_discovery(
+        settings,
+        discovery_enabled=False,
+        discovery_topic_prefix="wiimote",
+        discovery_wiimote_ids=(),
+    )
+
+    with caplog.at_level("WARNING"):
+        client.on_connect(client, None, None, 5, None)
+
+    assert "MQTT connection failed:" in caplog.text
+    assert "fill in mqtt.username and mqtt.password" in caplog.text
+
+
+def test_connect_mqtt_logs_explicit_auth_failure_on_disconnect(monkeypatch, caplog):
+    class FakeClient:
+        def __init__(self, callback_api_version, client_id, clean_session, transport):
+            self.on_connect = None
+            self.on_disconnect = None
+
+        def username_pw_set(self, username, password):
+            return None
+
+        def connect(self, host, port, keepalive):
+            return None
+
+        def loop_start(self):
+            return None
+
+    monkeypatch.setattr(connection.mqtt, "Client", FakeClient)
+    monkeypatch.setattr(
+        errors.mqtt,
+        "convert_disconnect_error_code_to_reason_code",
+        lambda reason_code: "Not authorized",
+    )
+
+    settings = Settings(
+        radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
+        discover_enabled=True,
+        mqtt_host="core-mosquitto",
+        mqtt_port=1883,
+        mqtt_username="user",
+        mqtt_password="bad-password",
+        topic_prefix="wiimote",
+    )
+
+    client = connection.connect_with_discovery(
+        settings,
+        discovery_enabled=False,
+        discovery_topic_prefix="wiimote",
+        discovery_wiimote_ids=(),
+    )
+
+    with caplog.at_level("WARNING"):
+        client.on_disconnect(client, None, None, 7, None)
+
+    assert "MQTT client disconnected:" in caplog.text
+    assert "Check mqtt.username and mqtt.password" in caplog.text
+
+
+def test_connect_mqtt_logs_hostname_resolution_failure(monkeypatch, caplog):
+    class FakeClient:
+        def __init__(self, callback_api_version, client_id, clean_session, transport):
+            self.on_connect = None
+            self.on_disconnect = None
+
+        def connect(self, host, port, keepalive):
+            raise socket.gaierror("Name or service not known")
+
+        def loop_start(self):
+            raise AssertionError("loop_start should not be called when connect fails")
+
+    monkeypatch.setattr(connection.mqtt, "Client", FakeClient)
+
+    settings = Settings(
+        radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
+        discover_enabled=True,
+        mqtt_host="missing-broker",
+        mqtt_port=1883,
+        mqtt_username="",
+        mqtt_password="",
+        topic_prefix="wiimote",
+    )
+
+    with caplog.at_level("WARNING"):
+        with pytest.raises(socket.gaierror):
+            connection.connect_with_discovery(
+                settings,
+                discovery_enabled=False,
+                discovery_topic_prefix="wiimote",
+                discovery_wiimote_ids=(),
+            )
+
+    assert "MQTT initial connect failed:" in caplog.text
+    assert "Name resolution failed for MQTT host missing-broker" in caplog.text
+    assert "ensure the broker hostname is resolvable" in caplog.text
+
+
+def test_connect_mqtt_logs_tls_failure(monkeypatch, caplog):
+    class FakeClient:
+        def __init__(self, callback_api_version, client_id, clean_session, transport):
+            self.on_connect = None
+            self.on_disconnect = None
+
+        def connect(self, host, port, keepalive):
+            raise ssl.SSLError("CERTIFICATE_VERIFY_FAILED")
+
+        def loop_start(self):
+            raise AssertionError("loop_start should not be called when connect fails")
+
+        def tls_set(self, cert_reqs=None):
+            return None
+
+        def tls_insecure_set(self, value):
+            return None
+
+    monkeypatch.setattr(connection.mqtt, "Client", FakeClient)
+
+    settings = Settings(
+        radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
+        discover_enabled=True,
+        mqtt_host="core-mosquitto",
+        mqtt_port=8883,
+        mqtt_username="",
+        mqtt_password="",
+        topic_prefix="wiimote",
+        mqtt_ssl=True,
+    )
+
+    with caplog.at_level("WARNING"):
+        with pytest.raises(ssl.SSLError):
+            connection.connect_with_discovery(
+                settings,
+                discovery_enabled=False,
+                discovery_topic_prefix="wiimote",
+                discovery_wiimote_ids=(),
+            )
+
+    assert "MQTT initial connect failed:" in caplog.text
+    assert "TLS handshake failed while connecting to MQTT broker" in caplog.text
+    assert (
+        "Check mqtt.ssl, mqtt.ssl_insecure, and the broker certificate configuration"
+        in caplog.text
+    )
+
+
+def test_connect_mqtt_logs_connection_refused(monkeypatch, caplog):
+    class FakeClient:
+        def __init__(self, callback_api_version, client_id, clean_session, transport):
+            self.on_connect = None
+            self.on_disconnect = None
+
+        def connect(self, host, port, keepalive):
+            raise ConnectionRefusedError("Connection refused")
+
+        def loop_start(self):
+            raise AssertionError("loop_start should not be called when connect fails")
+
+    monkeypatch.setattr(connection.mqtt, "Client", FakeClient)
+
+    settings = Settings(
+        radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
+        discover_enabled=True,
+        mqtt_host="core-mosquitto",
+        mqtt_port=1883,
+        mqtt_username="",
+        mqtt_password="",
+        topic_prefix="wiimote",
+    )
+
+    with caplog.at_level("WARNING"):
+        with pytest.raises(ConnectionRefusedError):
+            connection.connect_with_discovery(
+                settings,
+                discovery_enabled=False,
+                discovery_topic_prefix="wiimote",
+                discovery_wiimote_ids=(),
+            )
+
+    assert "MQTT initial connect failed:" in caplog.text
+    assert "TCP connection refused by MQTT broker" in caplog.text
+    assert (
+        "Check mqtt.host, mqtt.port, and that the broker is running and reachable"
+        in caplog.text
+    )
 
 
 def test_connect_mqtt_on_connect_publishes_discovery(monkeypatch):
@@ -248,16 +476,18 @@ def test_connect_mqtt_on_connect_publishes_discovery(monkeypatch):
         def loop_start(self):
             return None
 
-    monkeypatch.setattr(mqtt_client.mqtt, "Client", FakeClient)
+    monkeypatch.setattr(connection.mqtt, "Client", FakeClient)
 
     done = threading.Event()
 
-    def fake_publish_discovery(client, topic_prefix, wiimote_ids, discovery_prefix="homeassistant"):
+    def fake_publish_discovery(
+        client, topic_prefix, wiimote_ids, discovery_prefix="homeassistant"
+    ):
         called["args"] = (topic_prefix, tuple(wiimote_ids), discovery_prefix)
         done.set()
         return {"controllers": 2, "entities": 26, "failed": 0}
 
-    monkeypatch.setattr(mqtt_client, "publish_discovery_configs", fake_publish_discovery)
+    monkeypatch.setattr(connection, "configs", fake_publish_discovery)
 
     settings = Settings(
         radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
@@ -269,7 +499,7 @@ def test_connect_mqtt_on_connect_publishes_discovery(monkeypatch):
         topic_prefix="wiimote",
     )
 
-    client = mqtt_client.connect_mqtt_with_discovery(
+    client = connection.connect_with_discovery(
         settings,
         discovery_enabled=True,
         discovery_topic_prefix="wiimote",
@@ -303,7 +533,7 @@ def test_connect_mqtt_with_ssl_and_insecure_cert_verification(monkeypatch):
         def tls_insecure_set(self, value):
             calls["tls_insecure_set"] = value
 
-    monkeypatch.setattr(mqtt_client.mqtt, "Client", FakeClient)
+    monkeypatch.setattr(connection.mqtt, "Client", FakeClient)
 
     settings = Settings(
         radios=(RadioConfig(port="/dev/ttyUSB0", baud=115200, controller_id=1),),
@@ -318,7 +548,7 @@ def test_connect_mqtt_with_ssl_and_insecure_cert_verification(monkeypatch):
         mqtt_ssl_insecure=True,
     )
 
-    client = mqtt_client.connect_mqtt_with_discovery(
+    client = connection.connect_with_discovery(
         settings,
         discovery_enabled=False,
         discovery_topic_prefix="wiimote",
@@ -327,7 +557,7 @@ def test_connect_mqtt_with_ssl_and_insecure_cert_verification(monkeypatch):
 
     assert client is not None
     assert calls["init"][3] == "websockets"
-    assert calls["tls_set"] == mqtt_client.ssl.CERT_NONE
+    assert calls["tls_set"] == ssl.CERT_NONE
     assert calls["tls_insecure_set"] is True
 
 
@@ -335,7 +565,7 @@ def test_mqtt_publish_waits_for_publish(monkeypatch):
     calls = {}
 
     class FakeResult:
-        rc = mqtt_client.mqtt.MQTT_ERR_SUCCESS
+        rc = publish.mqtt.MQTT_ERR_SUCCESS
 
         def wait_for_publish(self):
             calls["wait"] = True
@@ -348,7 +578,7 @@ def test_mqtt_publish_waits_for_publish(monkeypatch):
             calls["publish"] = (topic, payload, retain)
             return FakeResult()
 
-    mqtt_client.mqtt_publish(FakeClient(), "topic/x", "ON", retain=True)
+    publish.message(FakeClient(), "topic/x", "ON", retain=True)
 
     assert calls["publish"] == ("topic/x", "ON", True)
     assert calls["wait"] is True
@@ -365,7 +595,7 @@ def test_mqtt_publish_skips_when_client_is_disconnected():
             calls["publish"] = (topic, payload, retain)
             raise AssertionError("publish should not be called while disconnected")
 
-    published = mqtt_client.mqtt_publish(FakeClient(), "topic/x", "ON", retain=True)
+    published = publish.message(FakeClient(), "topic/x", "ON", retain=True)
 
     assert published is False
     assert "publish" not in calls
@@ -375,11 +605,13 @@ def test_mqtt_publish_skips_runtime_publish_failure():
     calls = {}
 
     class FakeResult:
-        rc = mqtt_client.mqtt.MQTT_ERR_SUCCESS
+        rc = publish.mqtt.MQTT_ERR_SUCCESS
 
         def wait_for_publish(self):
             calls["wait"] = True
-            raise RuntimeError("Message publish failed: The client is not currently connected.")
+            raise RuntimeError(
+                "Message publish failed: The client is not currently connected."
+            )
 
     class FakeClient:
         def is_connected(self):
@@ -389,7 +621,7 @@ def test_mqtt_publish_skips_runtime_publish_failure():
             calls["publish"] = (topic, payload, retain)
             return FakeResult()
 
-    published = mqtt_client.mqtt_publish(FakeClient(), "topic/x", "ON", retain=True)
+    published = publish.message(FakeClient(), "topic/x", "ON", retain=True)
 
     assert published is False
     assert calls["publish"] == ("topic/x", "ON", True)
@@ -407,9 +639,9 @@ def test_mqtt_publish_warning_is_rate_limited(monkeypatch):
             warnings.append(message)
 
     ticks = iter([100.0, 105.0, 116.0])
-    monkeypatch.setattr(mqtt_client.time, "monotonic", lambda: next(ticks))
-    monkeypatch.setattr(mqtt_client, "LOGGER", FakeLogger())
-    monkeypatch.setattr(mqtt_client, "_last_publish_warning_at", None)
+    monkeypatch.setattr(publish.time, "monotonic", lambda: next(ticks))
+    monkeypatch.setattr(publish, "LOGGER", FakeLogger())
+    monkeypatch.setattr(publish, "_last_publish_warning_at", None)
 
     class FakeClient:
         def is_connected(self):
@@ -418,9 +650,9 @@ def test_mqtt_publish_warning_is_rate_limited(monkeypatch):
         def publish(self, topic, payload, retain=False):
             raise AssertionError("publish should not be called while disconnected")
 
-    mqtt_client.mqtt_publish(FakeClient(), "topic/1", "ON")
-    mqtt_client.mqtt_publish(FakeClient(), "topic/2", "ON")
-    mqtt_client.mqtt_publish(FakeClient(), "topic/3", "ON")
+    publish.message(FakeClient(), "topic/1", "ON")
+    publish.message(FakeClient(), "topic/2", "ON")
+    publish.message(FakeClient(), "topic/3", "ON")
 
     assert warnings == [
         "Skipping MQTT publish while client is disconnected: topic/1",

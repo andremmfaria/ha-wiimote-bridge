@@ -3,18 +3,16 @@ import json
 import os
 import signal
 import threading
-import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
 import serial
 
 from wiimote_bridge.core.handlers import handle_message
-from wiimote_bridge.transport.mqtt_client import connect_mqtt_with_discovery
+from wiimote_bridge.transport.mqtt.connection import connect_with_discovery
 from wiimote_bridge.transport.serial_reader import open_serial
 from wiimote_bridge.utils.config import RadioConfig, load_settings
 from wiimote_bridge.utils.logging import configure_logging, get_logger
-
 
 LOGGER = get_logger(__name__)
 OPTIONS_PATH = "/data/options.json"
@@ -70,7 +68,9 @@ def _fingerprint_file(path: str) -> str | None:
 
 
 class _ConfigChangeWatcher:
-    def __init__(self, path: str, stop_event: threading.Event, poll_interval: float = 2.0) -> None:
+    def __init__(
+        self, path: str, stop_event: threading.Event, poll_interval: float = 2.0
+    ) -> None:
         self._path = path
         self._stop_event = stop_event
         self._poll_interval = poll_interval
@@ -220,10 +220,13 @@ def run() -> int:
         LOGGER.info("Watching add-on options for changes: %s", options_path)
         config_watcher.start()
     else:
-        LOGGER.debug("Options file not found; config change watcher disabled for %s", options_path)
+        LOGGER.debug(
+            "Options file not found; config change watcher disabled for %s",
+            options_path,
+        )
 
     controller_ids = tuple(radio.controller_id for radio in settings.radios)
-    client = connect_mqtt_with_discovery(
+    client = connect_with_discovery(
         settings,
         discovery_enabled=settings.discover_enabled,
         discovery_topic_prefix=settings.topic_prefix,
@@ -262,7 +265,10 @@ def run() -> int:
             pass
 
     if config_watcher.changed:
-        LOGGER.warning("Exiting with code %s so the supervisor restarts the add-on", CONFIG_CHANGED_EXIT_CODE)
+        LOGGER.warning(
+            "Exiting with code %s so the supervisor restarts the add-on",
+            CONFIG_CHANGED_EXIT_CODE,
+        )
         return CONFIG_CHANGED_EXIT_CODE
 
     return 0

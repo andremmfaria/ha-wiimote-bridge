@@ -3,6 +3,7 @@ import os
 from dataclasses import dataclass
 
 from dynaconf import Dynaconf
+
 from wiimote_bridge.utils.types import MqttTransport
 
 
@@ -133,18 +134,26 @@ def load_settings() -> Settings:
     except (TypeError, ValueError):
         configured_port = 0
 
-    mqtt_port = configured_port if configured_port > 0 else _default_mqtt_port(mqtt_transport, mqtt_ssl)
+    mqtt_port = (
+        configured_port
+        if configured_port > 0
+        else _default_mqtt_port(mqtt_transport, mqtt_ssl)
+    )
 
     return Settings(
         radios=radios,
-        discover_enabled=_as_bool(settings.get("DISCOVER_ENABLED", "true"), default=True),
+        discover_enabled=_as_bool(
+            settings.get("DISCOVER_ENABLED", "true"), default=True
+        ),
         mqtt_host=settings.get("MQTT_HOST", "core-mosquitto"),
         mqtt_port=mqtt_port,
         mqtt_username=settings.get("MQTT_USERNAME", ""),
         mqtt_password=settings.get("MQTT_PASSWORD", ""),
         mqtt_transport=mqtt_transport,
         mqtt_ssl=mqtt_ssl,
-        mqtt_ssl_insecure=_as_bool(settings.get("MQTT_SSL_INSECURE", "false"), default=False),
+        mqtt_ssl_insecure=_as_bool(
+            settings.get("MQTT_SSL_INSECURE", "false"), default=False
+        ),
         topic_prefix=settings.get("TOPIC_PREFIX", "wiimote"),
         log_level=str(settings.get("LOG_LEVEL", "info")).lower(),
         health_port=_parse_health_port(settings.get("HEALTH_PORT", "0")),

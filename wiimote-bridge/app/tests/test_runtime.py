@@ -74,16 +74,19 @@ def _patch_run_env(monkeypatch, fake_client, thread_class=None, configure_loggin
     monkeypatch.setattr(run_module.threading, "Thread", thread_class or _FakeThread)
     monkeypatch.setattr(
         run_module,
-        "connect_mqtt_with_discovery",
+        "connect_with_discovery",
         lambda _settings, **_kwargs: fake_client,
     )
-    monkeypatch.setattr(run_module, "configure_logging", configure_logging or (lambda level: level))
+    monkeypatch.setattr(
+        run_module, "configure_logging", configure_logging or (lambda level: level)
+    )
     _patch_signal_handlers(monkeypatch)
 
 
 # ---------------------------------------------------------------------------
 # run() tests — threading behaviour
 # ---------------------------------------------------------------------------
+
 
 def test_run_spawns_thread_per_radio(monkeypatch):
     fake_client = _FakeClient()
@@ -129,7 +132,7 @@ def test_run_passes_discovery_configuration(monkeypatch):
         called["kwargs"] = kwargs
         return fake_client
 
-    monkeypatch.setattr(run_module, "connect_mqtt_with_discovery", fake_connect)
+    monkeypatch.setattr(run_module, "connect_with_discovery", fake_connect)
 
     result = run_module.run()
 
@@ -154,7 +157,7 @@ def test_run_skips_discovery_when_disabled(monkeypatch):
         called["kwargs"] = kwargs
         return fake_client
 
-    monkeypatch.setattr(run_module, "connect_mqtt_with_discovery", fake_connect)
+    monkeypatch.setattr(run_module, "connect_with_discovery", fake_connect)
 
     result = run_module.run()
 
@@ -186,20 +189,36 @@ def test_run_exits_nonzero_when_options_change(monkeypatch):
         options_path = Path(temp_dir) / "options.json"
         options_path.write_text('{"log_level":"info"}', encoding="utf-8")
 
-        class _WatchingThread(_FakeThread):
-            def __init__(self, target, args=(), daemon=False, name=""):
-                self._target = target
-                self._args = args
+        watcher_state = {}
+
+        class _FakeConfigWatcher:
+            def __init__(self, path, stop_event, poll_interval=2.0):
+                self._path = path
+                self._stop_event = stop_event
+                self._poll_interval = poll_interval
+                self._changed = False
+                watcher_state["instance"] = self
+
+            @property
+            def enabled(self):
+                return True
+
+            @property
+            def changed(self):
+                return self._changed
 
             def start(self):
-                self._target(*self._args)
+                return None
 
         def fake_connect(_settings, **_kwargs):
             options_path.write_text('{"log_level":"debug"}', encoding="utf-8")
+            watcher_state["instance"]._changed = True
+            watcher_state["instance"]._stop_event.set()
             return fake_client
 
-        monkeypatch.setattr(run_module.threading, "Thread", _WatchingThread)
-        monkeypatch.setattr(run_module, "connect_mqtt_with_discovery", fake_connect)
+        monkeypatch.setattr(run_module.threading, "Thread", _FakeThread)
+        monkeypatch.setattr(run_module, "_ConfigChangeWatcher", _FakeConfigWatcher)
+        monkeypatch.setattr(run_module, "connect_with_discovery", fake_connect)
         monkeypatch.setattr(run_module, "configure_logging", lambda level: level)
         monkeypatch.setenv("WIIMOTE_BRIDGE_OPTIONS_PATH", str(options_path))
         _patch_signal_handlers(monkeypatch)
@@ -214,7 +233,9 @@ def test_run_exits_nonzero_when_options_change(monkeypatch):
 def test_run_returns_zero_when_options_file_missing(monkeypatch):
     fake_client = _FakeClient()
     _patch_run_env(monkeypatch, fake_client)
-    monkeypatch.setenv("WIIMOTE_BRIDGE_OPTIONS_PATH", "/tmp/wiimote-bridge-missing-options.json")
+    monkeypatch.setenv(
+        "WIIMOTE_BRIDGE_OPTIONS_PATH", "/tmp/wiimote-bridge-missing-options.json"
+    )
 
     result = run_module.run()
 
@@ -224,6 +245,7 @@ def test_run_returns_zero_when_options_file_missing(monkeypatch):
 # ---------------------------------------------------------------------------
 # run_radio() tests — serial reading behaviour
 # ---------------------------------------------------------------------------
+
 
 def test_run_radio_processes_message(monkeypatch):
     stop_event = threading.Event()
@@ -313,4 +335,3 @@ def test_run_radio_uses_controller_id(monkeypatch):
     run_module.run_radio(radio, object(), "wiimote", stop_event)
 
     assert seen["controller_id"] == 9
-

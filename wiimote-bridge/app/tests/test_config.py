@@ -140,4 +140,3 @@ def test_load_settings_invalid_health_port_disables_endpoint(monkeypatch):
     settings = load_settings()
 
     assert settings.health_port == 0
-
