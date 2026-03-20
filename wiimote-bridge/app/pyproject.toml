@@ -10,15 +10,15 @@ requires-python = ">=3.11"
 dependencies = [
   "pyserial==3.5",
   "paho-mqtt==2.1.0",
-  "dynaconf==3.2.12",
+  "dynaconf==3.2.13",
 ]
 
 [dependency-groups]
 dev = [
-  "mypy==1.18.2",
+  "mypy==1.19.1",
   "pytest==9.0.2",
   "pytest-cov==7.0.0",
-  "ruff==0.13.2",
+  "ruff==0.15.6",
 ]
 
 [tool.hatch.build.targets.wheel]
