@@ -1,6 +1,9 @@
+import hashlib
 import json
+import os
 import signal
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
@@ -14,6 +17,8 @@ from wiimote_bridge.utils.logging import configure_logging, get_logger
 
 
 LOGGER = get_logger(__name__)
+OPTIONS_PATH = "/data/options.json"
+CONFIG_CHANGED_EXIT_CODE = 75
 
 
 class _HealthHandler(BaseHTTPRequestHandler):
@@ -54,6 +59,57 @@ def _start_health_server(port: int) -> ThreadingHTTPServer | None:
     thread.start()
     LOGGER.info("Health endpoint listening on 0.0.0.0:%s/health", port)
     return server
+
+
+def _fingerprint_file(path: str) -> str | None:
+    try:
+        with open(path, "rb") as handle:
+            return hashlib.sha256(handle.read()).hexdigest()
+    except FileNotFoundError:
+        return None
+
+
+class _ConfigChangeWatcher:
+    def __init__(self, path: str, stop_event: threading.Event, poll_interval: float = 2.0) -> None:
+        self._path = path
+        self._stop_event = stop_event
+        self._poll_interval = poll_interval
+        self._baseline = _fingerprint_file(path)
+        self._changed = threading.Event()
+        self._thread: threading.Thread | None = None
+
+    @property
+    def enabled(self) -> bool:
+        return self._baseline is not None
+
+    @property
+    def changed(self) -> bool:
+        return self._changed.is_set()
+
+    def start(self) -> None:
+        if not self.enabled:
+            return
+
+        self._thread = threading.Thread(
+            target=self._run,
+            daemon=True,
+            name="config-watch",
+        )
+        self._thread.start()
+
+    def _run(self) -> None:
+        while not self._stop_event.wait(self._poll_interval):
+            current = _fingerprint_file(self._path)
+            if current is None or current == self._baseline:
+                continue
+
+            LOGGER.warning(
+                "Detected add-on config change at %s; forcing restart to apply updated options",
+                self._path,
+            )
+            self._changed.set()
+            self._stop_event.set()
+            return
 
 
 def run_radio(
@@ -147,6 +203,8 @@ def run() -> int:
     LOGGER.info("Health endpoint port: %s", settings.health_port)
 
     stop_event = threading.Event()
+    options_path = os.environ.get("WIIMOTE_BRIDGE_OPTIONS_PATH", OPTIONS_PATH)
+    config_watcher = _ConfigChangeWatcher(options_path, stop_event)
 
     def handle_signal(signum: int, frame: Any) -> None:
         del frame
@@ -157,6 +215,12 @@ def run() -> int:
     signal.signal(signal.SIGINT, handle_signal)
 
     health_server = _start_health_server(settings.health_port)
+
+    if config_watcher.enabled:
+        LOGGER.info("Watching add-on options for changes: %s", options_path)
+        config_watcher.start()
+    else:
+        LOGGER.debug("Options file not found; config change watcher disabled for %s", options_path)
 
     controller_ids = tuple(radio.controller_id for radio in settings.radios)
     client = connect_mqtt_with_discovery(
@@ -196,5 +260,9 @@ def run() -> int:
             LOGGER.info("Health endpoint stopped")
         except Exception:
             pass
+
+    if config_watcher.changed:
+        LOGGER.warning("Exiting with code %s so the supervisor restarts the add-on", CONFIG_CHANGED_EXIT_CODE)
+        return CONFIG_CHANGED_EXIT_CODE
 
     return 0

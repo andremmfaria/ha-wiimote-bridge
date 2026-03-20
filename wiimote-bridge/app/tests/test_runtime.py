@@ -1,4 +1,6 @@
+import tempfile
 import threading
+from pathlib import Path
 
 import wiimote_bridge.core.run as run_module
 from wiimote_bridge.utils.config import RadioConfig
@@ -175,6 +177,48 @@ def test_run_uses_configured_log_level(monkeypatch):
 
     assert result == 0
     assert configured["level"] == "warning"
+
+
+def test_run_exits_nonzero_when_options_change(monkeypatch):
+    fake_client = _FakeClient()
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        options_path = Path(temp_dir) / "options.json"
+        options_path.write_text('{"log_level":"info"}', encoding="utf-8")
+
+        class _WatchingThread(_FakeThread):
+            def __init__(self, target, args=(), daemon=False, name=""):
+                self._target = target
+                self._args = args
+
+            def start(self):
+                self._target(*self._args)
+
+        def fake_connect(_settings, **_kwargs):
+            options_path.write_text('{"log_level":"debug"}', encoding="utf-8")
+            return fake_client
+
+        monkeypatch.setattr(run_module.threading, "Thread", _WatchingThread)
+        monkeypatch.setattr(run_module, "connect_mqtt_with_discovery", fake_connect)
+        monkeypatch.setattr(run_module, "configure_logging", lambda level: level)
+        monkeypatch.setenv("WIIMOTE_BRIDGE_OPTIONS_PATH", str(options_path))
+        _patch_signal_handlers(monkeypatch)
+
+        result = run_module.run()
+
+    assert result == run_module.CONFIG_CHANGED_EXIT_CODE
+    assert fake_client.stopped is True
+    assert fake_client.disconnected is True
+
+
+def test_run_returns_zero_when_options_file_missing(monkeypatch):
+    fake_client = _FakeClient()
+    _patch_run_env(monkeypatch, fake_client)
+    monkeypatch.setenv("WIIMOTE_BRIDGE_OPTIONS_PATH", "/tmp/wiimote-bridge-missing-options.json")
+
+    result = run_module.run()
+
+    assert result == 0
 
 
 # ---------------------------------------------------------------------------
