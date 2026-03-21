@@ -281,6 +281,51 @@ This project repurposes them using inexpensive ESP32 hardware.
 - rumble control from Home Assistant
 - LED control
 
+## Local Workflow Runs
+
+Use `act` to exercise the repository's GitHub Actions workflows before pushing changes.
+
+Requirements:
+
+- Docker
+
+Install Docker using the official documentation:
+
+- <https://docs.docker.com/engine/install/>
+
+Install `act` using the official documentation:
+
+- <https://nektosact.com/installation/index.html>
+
+Install command from the official docs:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+```
+
+After the installer finishes, move the generated binary from `./bin/act` into a directory on your `PATH`, for example:
+
+```bash
+sudo install -m 0755 ./bin/act /usr/local/bin/act
+```
+
+The repository includes a wrapper script at `scripts/run-gh-workflows-locally.sh` that provides the correct workflow file, event payload, and safe defaults for this project.
+
+Examples:
+
+```bash
+scripts/run-gh-workflows-locally.sh ci
+scripts/run-gh-workflows-locally.sh ci --job test
+scripts/run-gh-workflows-locally.sh release
+scripts/run-gh-workflows-locally.sh release --job firmware --tag v0.4.6
+```
+
+Notes:
+
+- `release` defaults to the safe local path and runs the firmware flow unless you explicitly select a publishing job.
+- `--allow-publish` is required before running release jobs that push images or create a GitHub release.
+- If you need secrets for `act`, export `GITHUB_TOKEN` or create `.secrets.act` in the repository root.
+
 ## Release Process
 
 The Home Assistant add-on is released from Git tags.
@@ -289,6 +334,13 @@ The Home Assistant add-on is released from Git tags.
 2. Update `wiimote-bridge/CHANGELOG.md`.
 3. If Python dependencies changed, regenerate `wiimote-bridge/app/uv.lock`.
 4. Create and push a matching tag such as `v0.1.0`.
+
+Before pushing, run the local workflow checks:
+
+```bash
+scripts/run-gh-workflows-locally.sh ci
+scripts/run-gh-workflows-locally.sh release --job firmware
+```
 
 The tag triggers GitHub Actions to:
 
