@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.6
+
+- Restart the add-on automatically when options change by watching `options.json` during runtime and exiting with a supervisor-restart exit code.
+- Refactor the MQTT transport into focused modules (`connection`, `publish`, `discovery`, `errors`, `constants`, `types`) and update runtime imports accordingly.
+- Improve MQTT diagnostics by surfacing explicit connect/disconnect reasons and clearer network, TLS, DNS, and authentication failure messages.
+- Refresh the Python app tests and tooling configuration to cover the refactor and keep quality checks passing.
+
 ## 0.4.5
 
 - Add a reusable Home Assistant automation blueprint for common Wii Remote button actions in `blueprints/automation/wiimote_common.yaml`.

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wiimote-bridge"
-version = "0.4.5"
+version = "0.4.6"
 description = "Wii Remote serial to MQTT bridge for Home Assistant"
 requires-python = ">=3.11"
 dependencies = [
