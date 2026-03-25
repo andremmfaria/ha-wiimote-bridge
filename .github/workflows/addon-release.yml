@@ -107,7 +107,7 @@ jobs:
           cp /tmp/firmware/wiimote-serial-bridge.ino.bin /tmp/firmware/wiimote-serial-bridge.bin
 
       - name: Upload firmware artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wiimote-serial-bridge-bin
           path: /tmp/firmware/wiimote-serial-bridge.bin
